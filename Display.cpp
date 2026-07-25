@@ -200,6 +200,39 @@ void Display::showPlayer(const PlayerState& player)
 }
 
 //==============================================================
+// Funkcja update()
+//
+// Aktualizuje zawartość wyświetlacza.
+//
+// Parametry:
+//
+// player
+//      Aktualny stan odtwarzacza.
+//
+// changes
+//      Zestaw flag określających wykryte zmiany.
+//
+//==============================================================
+
+void Display::update(const PlayerState& player,
+                     ChangeFlags changes)
+{
+    //----------------------------------------------------------
+    // Parametr będzie wykorzystywany w kolejnych etapach
+    // projektu.
+    //----------------------------------------------------------
+
+    (void)changes;
+
+    //----------------------------------------------------------
+    // Tymczasowo wykonywane jest pełne odświeżenie ekranu.
+    //----------------------------------------------------------
+
+    showPlayer(player);
+}
+
+
+//==============================================================
 // Rysowanie nagłówka z nazwą źródła dźwięku.
 //==============================================================
 

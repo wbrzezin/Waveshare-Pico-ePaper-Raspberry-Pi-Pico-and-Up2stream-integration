@@ -109,7 +109,7 @@ ChangeFlags changes =
 //
 //==========================================================
 
-display.showPlayer(currentState);
+display.update(currentState, changes);
 
 
 //==========================================================

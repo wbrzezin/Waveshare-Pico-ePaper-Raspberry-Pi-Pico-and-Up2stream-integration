@@ -13,6 +13,7 @@
 #include <Arduino.h>
 
 #include "PlayerState.h"
+#include "ChangeFlags.h"
 
 
 //--------------------------------------------------------------
@@ -65,6 +66,26 @@ public:
    //----------------------------------------------------------
 
 void showPlayer(const PlayerState& player);
+
+    //----------------------------------------------------------
+    // Aktualizacja zawartości wyświetlacza.
+    //
+    // Funkcja analizuje przekazane informacje o zmianach
+    // i odświeża odpowiednie elementy interfejsu.
+    //
+    // Na obecnym etapie wykonywane jest jeszcze pełne
+    // odświeżenie ekranu.
+    //
+    // Parametry:
+    //
+    // player
+    //      Aktualny stan odtwarzacza.
+    //
+    // changes
+    //      Flagi określające, które elementy uległy zmianie.
+    //----------------------------------------------------------
+    void update(const PlayerState& player,
+                ChangeFlags changes);
 
     //----------------------------------------------------------
     // Aktualizacja elementów dynamicznych.
