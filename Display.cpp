@@ -196,16 +196,7 @@ void Display::showPlayer(const PlayerState& player)
     }
     while (epd.nextPage());
 
-    //----------------------------------------------------------
-    // Zapamiętanie ostatnio wyświetlonego stanu odtwarzacza.
-    //
-    // W kolejnych wersjach programu struktura będzie
-    // porównywana z nowym stanem odtwarzacza, co pozwoli
-    // odświeżać jedynie te elementy ekranu, które uległy
-    // zmianie.
-    //----------------------------------------------------------
-
-    currentState = player;
+ 
 }
 
 //==============================================================

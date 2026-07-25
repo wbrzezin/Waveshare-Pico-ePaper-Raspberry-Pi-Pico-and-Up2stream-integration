@@ -108,17 +108,37 @@ void showPlayer(const PlayerState& player);
     //----------------------------------------------------------
     void scrollText();
 
-
 private:
 
-//==========================================================
-// Funkcje odpowiedzialne za rysowanie elementów interfejsu
-//==========================================================
+    //==========================================================
+    // Funkcje odpowiedzialne za rysowanie interfejsu użytkownika
+    //==========================================================
+
+    //==========================================================
+    // Funkcja drawPlayerScreen()
+    //
+    // Rysuje kompletny ekran odtwarzacza.
+    //
+    // Funkcja jest wykorzystywana podczas pełnego odświeżania
+    // wyświetlacza e-paper.
+    //
+    // Parametry:
+    //
+    // player
+    //      Aktualny stan odtwarzacza.
+    //
+    //==========================================================
+    void drawPlayerScreen(const PlayerState& player);
 
     //----------------------------------------------------------
     // Rysowanie nagłówka z nazwą źródła dźwięku.
     //----------------------------------------------------------
     void drawHeader(const char* source);
+
+    //----------------------------------------------------------
+    // Rysowanie poziomej linii oddzielającej sekcje ekranu.
+    //----------------------------------------------------------
+    void drawSeparator(int y);
 
     //----------------------------------------------------------
     // Rysowanie tytułu aktualnie odtwarzanego utworu.
@@ -131,39 +151,43 @@ private:
     void drawArtist(const char* artist);
 
     //----------------------------------------------------------
-    // Rysowanie poziomej linii oddzielającej sekcje ekranu.
-    //----------------------------------------------------------
-    void drawSeparator(int y);
-
-    //----------------------------------------------------------
     // Rysowanie paska postępu odtwarzania.
     //
-    // currentTime - aktualny czas odtwarzania
-    // totalTime   - całkowity czas utworu
-    // progress    - postęp odtwarzania (0...100%)
+    // currentTime
+    //      Aktualny czas odtwarzania.
+    //
+    // totalTime
+    //      Całkowity czas utworu.
+    //
+    // progress
+    //      Postęp odtwarzania (0...100%).
     //----------------------------------------------------------
     void drawPlaybackBar(const char* currentTime,
                          const char* totalTime,
                          int progress);
 
- 
-     //----------------------------------------------------------
+    //----------------------------------------------------------
     // Rysowanie aktualnego poziomu głośności.
     //
     // volume
     //      Aktualny poziom głośności (0...100%).
     //----------------------------------------------------------
     void drawVolume(int volume);
- 
- 
-     //==========================================================
-     // Bufor aktualnie wyświetlanych danych
-     //==========================================================
 
-     //----------------------------------------------------------
-     // Aktualnie wyświetlane źródło dźwięku.
-     //----------------------------------------------------------
-     const char* currentSource = nullptr;
+
+    //==========================================================
+    // Bufor aktualnie wyświetlanych danych
+    //
+    // Zmienne przechowują wartości, które zostały ostatnio
+    // narysowane na ekranie. Dzięki temu możliwe będzie
+    // wykonywanie częściowego odświeżania wyświetlacza
+    // wyłącznie dla elementów, które uległy zmianie.
+    //==========================================================
+
+    //----------------------------------------------------------
+    // Aktualnie wyświetlane źródło dźwięku.
+    //----------------------------------------------------------
+    const char* currentSource = nullptr;
 
     //----------------------------------------------------------
     // Aktualnie wyświetlany poziom głośności.
@@ -175,21 +199,6 @@ private:
     //----------------------------------------------------------
     int currentProgress = -1;
 
-        //==========================================================
-    // Bufor aktualnie wyświetlanych danych
-    //==========================================================
-
-    //----------------------------------------------------------
-    // Ostatnio wyświetlony stan odtwarzacza.
-    //
-    // Struktura przechowuje komplet informacji wykorzystanych
-    // podczas ostatniego rysowania ekranu.
-    //
-    // W kolejnych wersjach programu będzie porównywana z nowym
-    // stanem odtwarzacza, co pozwoli odświeżać tylko te
-    // elementy interfejsu, które rzeczywiście uległy zmianie.
-    //----------------------------------------------------------
-    PlayerState currentState;
 
     //==========================================================
     // Parametry przewijania tekstu
@@ -210,6 +219,7 @@ private:
     // przesunięty podczas przewijania.
     //----------------------------------------------------------
     int artistOffset = 0;
+
 };
 
 #endif

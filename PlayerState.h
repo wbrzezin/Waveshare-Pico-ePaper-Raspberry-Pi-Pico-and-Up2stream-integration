@@ -52,6 +52,33 @@
 
 struct PlayerState
 {
+    
+    //==========================================================
+    // Konstruktor domyślny
+    //
+    // Inicjalizuje wszystkie pola struktury wartościami
+    // domyślnymi.
+    //
+    // Dzięki temu obiekt PlayerState jest zawsze w poprawnym
+    // stanie i może być bezpiecznie wykorzystywany do
+    // porównywania oraz aktualizacji interfejsu użytkownika.
+    //==========================================================
+
+    PlayerState()
+    {
+        source      = "";
+        artist      = "";
+        title       = "";
+
+        currentTime = "00:00";
+        totalTime   = "00:00";
+
+        progress    = 0;
+        volume      = 0;
+
+        playing     = false;
+    } 
+    
     //==========================================================
     // Źródło odtwarzania
     //==========================================================
