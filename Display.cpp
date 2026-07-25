@@ -148,6 +148,7 @@ void Display::showPlayer(const char* source,
     // tekstu bez konieczności ponownego wywoływania funkcji.
     //----------------------------------------------------------
 
+
     currentTitle = title;
     currentArtist = artist;
 

@@ -29,6 +29,9 @@ Display display;
 
 void setup()
 {
+
+
+    
     //----------------------------------------------------------
     // Uruchomienie portu szeregowego.
     // Wykorzystywany podczas uruchamiania oraz debugowania.
