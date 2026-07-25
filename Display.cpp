@@ -138,19 +138,15 @@ void Display::splash()
 // a następnie rysuje cały ekran od podstaw.
 //==============================================================
 
-void Display::showPlayer(const char* source,
-                         const char* artist,
-                         const char* title)
+void Display::showPlayer(const PlayerState& player)
+
 {
-    //----------------------------------------------------------
-    // Zapamiętanie aktualnie wyświetlanych danych.
-    // Będą wykorzystywane podczas późniejszego przewijania
-    // tekstu bez konieczności ponownego wywoływania funkcji.
-    //----------------------------------------------------------
+//----------------------------------------------------------
+// Zapamiętanie aktualnie wyświetlanych danych.
+//----------------------------------------------------------
 
-
-    currentTitle = title;
-    currentArtist = artist;
+currentTitle = player.title;
+currentArtist = player.artist;
 
     epd.setRotation(1);
     epd.setFont(&FreeMonoBold9pt7b);
@@ -172,15 +168,17 @@ void Display::showPlayer(const char* source,
         // Rysowanie kolejnych elementów interfejsu.
         //------------------------------------------------------
 
-        drawHeader(source);
+        drawHeader(player.source);
 
         drawSeparator(HEADER_LINE);
 
-        drawTitle(title);
+        drawTitle(player.title);
 
-        drawArtist(artist);
+        drawArtist(player.artist);
 
-        drawPlaybackBar("02:15", "08:26", 35);
+        drawPlaybackBar(player.currentTime,
+                player.totalTime,
+                player.progress);
 
         //------------------------------------------------------
         // Informacja o poziomie głośności.
@@ -189,7 +187,9 @@ void Display::showPlayer(const char* source,
         //------------------------------------------------------
 
         epd.setCursor(MARGIN_X, VOLUME_Y);
-        epd.print("VOL 38%");
+        epd.print("VOL ");
+        epd.print(player.volume);
+        epd.print("%");
     }
     while (epd.nextPage());
 }

@@ -20,6 +20,15 @@
 
 Display display;
 
+//==============================================================
+// Aktualny stan odtwarzacza.
+//
+// Struktura będzie w przyszłości aktualizowana przez moduł
+// komunikacji z UP2Stream.
+//==============================================================
+
+PlayerState player;
+
 
 //==============================================================
 // Funkcja setup()
@@ -57,16 +66,28 @@ void setup()
 
     delay(3000);
 
-    //----------------------------------------------------------
-    // Wyświetlenie przykładowego ekranu odtwarzacza.
-    //
-    // Docelowo dane będą pobierane z modułu Arylic UP2Stream.
-    //----------------------------------------------------------
+ //----------------------------------------------------------
+// Przygotowanie przykładowych danych.
+//
+// Docelowo informacje będą pobierane z modułu Arylic
+// UP2Stream.
+//----------------------------------------------------------
 
-    display.showPlayer(
-        "Spotify",
-        "Dire Straits",
-        "Money For Nothing");
+player.source      = "Spotify";
+player.artist      = "Dire Straits";
+player.title       = "Money For Nothing";
+
+player.currentTime = "02:15";
+player.totalTime   = "08:26";
+
+player.progress    = 35;
+player.volume      = 38;
+
+player.playing     = true;
+
+display.showPlayer(player);
+
+
 }
 
 

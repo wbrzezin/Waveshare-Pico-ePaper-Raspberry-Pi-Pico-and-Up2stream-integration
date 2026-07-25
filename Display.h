@@ -10,6 +10,44 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+//==============================================================
+// Struktura PlayerState
+//
+// Struktura przechowuje wszystkie informacje opisujące
+// aktualny stan odtwarzacza.
+//
+// Dzięki przekazywaniu jednej struktury zamiast wielu
+// pojedynczych parametrów kod staje się czytelniejszy
+// i łatwiejszy do rozbudowy.
+//==============================================================
+
+struct PlayerState
+{
+    //----------------------------------------------------------
+    // Informacje o źródle i aktualnym utworze.
+    //----------------------------------------------------------
+
+    const char* source;
+    const char* artist;
+    const char* title;
+
+    //----------------------------------------------------------
+    // Informacje o odtwarzaniu.
+    //----------------------------------------------------------
+
+    const char* currentTime;
+    const char* totalTime;
+
+    int progress;
+    int volume;
+
+    //----------------------------------------------------------
+    // Stan odtwarzacza.
+    //----------------------------------------------------------
+
+    bool playing;
+};
+
 //--------------------------------------------------------------
 // Klasa Display
 //
@@ -51,17 +89,15 @@ public:
     //----------------------------------------------------------
     void splash();
 
-    //----------------------------------------------------------
-    // Wyświetlenie głównego ekranu odtwarzacza.
-    //
-    // Parametry:
-    // source - źródło dźwięku (Spotify, AirPlay, DLNA...)
-    // artist - nazwa wykonawcy
-    // title  - tytuł aktualnie odtwarzanego utworu
-    //----------------------------------------------------------
-    void showPlayer(const char* source,
-                    const char* artist,
-                    const char* title);
+   //----------------------------------------------------------
+// Wyświetlenie głównego ekranu odtwarzacza.
+//
+// Parametr:
+// player - komplet informacji o aktualnym stanie
+//          odtwarzacza.
+//----------------------------------------------------------
+
+void showPlayer(const PlayerState& player);
 
     //----------------------------------------------------------
     // Aktualizacja elementów dynamicznych.
