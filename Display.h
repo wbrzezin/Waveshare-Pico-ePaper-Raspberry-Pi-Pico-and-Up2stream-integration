@@ -14,6 +14,7 @@
 
 #include "PlayerState.h"
 #include "ChangeFlags.h"
+#include "ScrollState.h"
 
 
 //--------------------------------------------------------------
@@ -128,6 +129,19 @@ private:
     //----------------------------------------------------------
     void drawSeparator(int y);
 
+
+//==============================================================
+// Funkcja initScroll()
+//
+// Oblicza szerokość tekstu oraz określa, czy wymagane jest
+// przewijanie.
+//
+//==============================================================
+
+void initScroll(ScrollState& scroll,
+                const char* text,
+                int areaWidth);
+
     //----------------------------------------------------------
     // Rysowanie tytułu aktualnie odtwarzanego utworu.
     //----------------------------------------------------------
@@ -175,38 +189,22 @@ private:
     //----------------------------------------------------------
     // Aktualnie wyświetlane źródło dźwięku.
     //----------------------------------------------------------
-    const char* currentSource = nullptr;
+const char* currentSource = nullptr;
 
-    //----------------------------------------------------------
-    // Aktualnie wyświetlany poziom głośności.
-    //----------------------------------------------------------
-    int currentVolume = -1;
+int currentVolume = -1;
+int currentProgress = -1;
 
-    //----------------------------------------------------------
-    // Aktualnie wyświetlany postęp odtwarzania.
-    //----------------------------------------------------------
-    int currentProgress = -1;
+//--------------------------------------------------------------
+// Stan przewijania tytułu.
+//--------------------------------------------------------------
 
+ScrollState titleScroll;
 
-    //==========================================================
-    // Parametry przewijania tekstu
-    //==========================================================
+//--------------------------------------------------------------
+// Stan przewijania wykonawcy.
+//--------------------------------------------------------------
 
-    //----------------------------------------------------------
-    // Aktualne przesunięcie tytułu utworu.
-    //
-    // Wartość określa liczbę pikseli, o jaką tekst został
-    // przesunięty podczas przewijania.
-    //----------------------------------------------------------
-    int titleOffset = 0;
-
-    //----------------------------------------------------------
-    // Aktualne przesunięcie nazwy wykonawcy.
-    //
-    // Wartość określa liczbę pikseli, o jaką tekst został
-    // przesunięty podczas przewijania.
-    //----------------------------------------------------------
-    int artistOffset = 0;
+ScrollState artistScroll;
 
 };
 

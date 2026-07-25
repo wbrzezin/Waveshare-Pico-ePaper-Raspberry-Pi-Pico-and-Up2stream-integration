@@ -130,6 +130,61 @@ void Display::splash()
     while (epd.nextPage());
 }
 
+//==============================================================
+// Funkcja initScroll()
+//
+// Oblicza szerokość tekstu oraz określa, czy wymagane jest
+// przewijanie.
+//
+//==============================================================
+
+void Display::initScroll(ScrollState& scroll,
+                         const char* text,
+                         int areaWidth)
+{
+    //----------------------------------------------------------
+    // Zapamiętaj szerokość dostępnego obszaru.
+    //----------------------------------------------------------
+
+    scroll.areaWidth = areaWidth;
+
+    //----------------------------------------------------------
+    // Oblicz szerokość napisu.
+    //----------------------------------------------------------
+
+    int16_t x1;
+    int16_t y1;
+
+    uint16_t w;
+    uint16_t h;
+
+    epd.getTextBounds(text,
+                      0,
+                      0,
+                      &x1,
+                      &y1,
+                      &w,
+                      &h);
+
+    scroll.textWidth = w;
+
+    //----------------------------------------------------------
+    // Sprawdź, czy wymagane jest przewijanie.
+    //----------------------------------------------------------
+
+    scroll.enabled = (w > areaWidth);
+
+    //----------------------------------------------------------
+    // Wyzeruj stan animacji.
+    //----------------------------------------------------------
+
+    scroll.offset = 0;
+    scroll.lastUpdate = millis();
+
+    scroll.pause = false;
+    scroll.pauseStart = 0;
+}
+
 
 //==============================================================
 // Funkcja showPlayer()
