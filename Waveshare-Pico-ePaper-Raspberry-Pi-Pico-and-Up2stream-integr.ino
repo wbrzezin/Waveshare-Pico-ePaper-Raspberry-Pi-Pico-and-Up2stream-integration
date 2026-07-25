@@ -12,7 +12,7 @@
 //==============================================================
 
 #include "Display.h"
-
+#include "StateComparer.h"
 
 //==============================================================
 // Utworzenie obiektu odpowiedzialnego za obsługę wyświetlacza.
@@ -21,13 +21,19 @@
 Display display;
 
 //==============================================================
-// Aktualny stan odtwarzacza.
+// Bufory stanu odtwarzacza.
 //
-// Struktura będzie w przyszłości aktualizowana przez moduł
-// komunikacji z UP2Stream.
+// previousState
+//      Stan odtwarzacza wyświetlony podczas poprzedniego
+//      odświeżenia.
+//
+// currentState
+//      Aktualny stan odebrany z modułu UP2Stream.
+//
 //==============================================================
 
-PlayerState player;
+PlayerState previousState;
+PlayerState currentState;
 
 
 //==============================================================
@@ -66,26 +72,55 @@ void setup()
 
     delay(3000);
 
- //----------------------------------------------------------
+//----------------------------------------------------------
 // Przygotowanie przykładowych danych.
 //
 // Docelowo informacje będą pobierane z modułu Arylic
 // UP2Stream.
 //----------------------------------------------------------
 
-player.source      = "Spotify";
-player.artist      = "Dire Straits";
-player.title       = "Money For Nothing";
+currentState.source      = "Spotify";
+currentState.artist      = "Dire Straits";
+currentState.title       = "Money For Nothing";
 
-player.currentTime = "02:15";
-player.totalTime   = "08:26";
+currentState.currentTime = "02:15";
+currentState.totalTime   = "08:26";
 
-player.progress    = 35;
-player.volume      = 38;
+currentState.progress    = 35;
+currentState.volume      = 38;
 
-player.playing     = true;
+currentState.playing     = true;
 
-display.showPlayer(player);
+
+//==========================================================
+// Porównanie poprzedniego oraz aktualnego stanu odtwarzacza.
+//
+// Funkcja compare() zwraca zestaw flag określających,
+// które elementy stanu odtwarzacza uległy zmianie.
+//
+//==========================================================
+
+ChangeFlags changes =
+    StateComparer::compare(previousState, currentState);
+
+
+//==========================================================
+// Wyświetlenie aktualnego stanu odtwarzacza.
+//
+//==========================================================
+
+display.showPlayer(currentState);
+
+
+//==========================================================
+// Zapamiętanie aktualnego stanu.
+//
+// Podczas kolejnego odświeżenia będzie on traktowany jako
+// stan poprzedni.
+//
+//==========================================================
+
+previousState = currentState;
 
 
 }

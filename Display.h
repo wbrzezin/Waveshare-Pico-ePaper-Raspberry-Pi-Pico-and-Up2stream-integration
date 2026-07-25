@@ -10,43 +10,10 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-//==============================================================
-// Struktura PlayerState
-//
-// Struktura przechowuje wszystkie informacje opisujące
-// aktualny stan odtwarzacza.
-//
-// Dzięki przekazywaniu jednej struktury zamiast wielu
-// pojedynczych parametrów kod staje się czytelniejszy
-// i łatwiejszy do rozbudowy.
-//==============================================================
+#include <Arduino.h>
 
-struct PlayerState
-{
-    //----------------------------------------------------------
-    // Informacje o źródle i aktualnym utworze.
-    //----------------------------------------------------------
+#include "PlayerState.h"
 
-    const char* source;
-    const char* artist;
-    const char* title;
-
-    //----------------------------------------------------------
-    // Informacje o odtwarzaniu.
-    //----------------------------------------------------------
-
-    const char* currentTime;
-    const char* totalTime;
-
-    int progress;
-    int volume;
-
-    //----------------------------------------------------------
-    // Stan odtwarzacza.
-    //----------------------------------------------------------
-
-    bool playing;
-};
 
 //--------------------------------------------------------------
 // Klasa Display
