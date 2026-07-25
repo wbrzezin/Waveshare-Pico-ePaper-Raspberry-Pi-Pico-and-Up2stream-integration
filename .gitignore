@@ -1,0 +1,6 @@
+# Ignoruj pliki tymczasowe budowane przez Arduino
+/build/
+/bin/
+
+# Ignoruj lokalne pliki konfiguracyjne IDE
+.arduino/
