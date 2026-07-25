@@ -183,6 +183,25 @@ void Display::initScroll(ScrollState& scroll,
 
     scroll.pause = false;
     scroll.pauseStart = 0;
+
+//--------------------------------------------------------------
+// Informacje diagnostyczne.
+//--------------------------------------------------------------
+
+Serial.print("Tekst: ");
+Serial.println(text);
+
+Serial.print("Szerokość: ");
+Serial.println(scroll.textWidth);
+
+Serial.print("Pole: ");
+Serial.println(scroll.areaWidth);
+
+Serial.print("Przewijanie: ");
+Serial.println(scroll.enabled ? "TAK" : "NIE");
+
+Serial.println();
+
 }
 
 
@@ -205,6 +224,19 @@ void Display::showPlayer(const PlayerState& player)
 {
     Serial.println("showPlayer()");
 
+
+//--------------------------------------------------------------
+// Przygotowanie parametrów przewijania tekstu.
+//--------------------------------------------------------------
+
+initScroll(titleScroll,
+           player.title,
+           230);
+
+initScroll(artistScroll,
+           player.artist,
+           230);
+
     //----------------------------------------------------------
     // Rozpoczęcie pełnego odświeżania wyświetlacza.
     //----------------------------------------------------------
@@ -226,6 +258,9 @@ void Display::showPlayer(const PlayerState& player)
 
         drawSeparator(HEADER_LINE);
 
+
+      
+      
         //------------------------------------------------------
         // Informacje o aktualnie odtwarzanym utworze.
         //------------------------------------------------------
@@ -252,6 +287,26 @@ void Display::showPlayer(const PlayerState& player)
     while (epd.nextPage());
 
  
+}
+
+
+//==============================================================
+// Funkcja drawScrollingText()
+//
+// ...
+//==============================================================
+
+void Display::drawScrollingText(const char* text,
+                                ScrollState& scroll,
+                                int x,
+                                int y,
+                                int width)
+{
+    (void)scroll;
+    (void)width;
+
+    epd.setCursor(x, y);
+    epd.print(text);
 }
 
 //==============================================================
@@ -304,10 +359,12 @@ void Display::drawHeader(const char* source)
 
 void Display::drawTitle(const char* title)
 {
-    epd.setCursor(MARGIN_X, TITLE_Y);
-    epd.print(title);
+    drawScrollingText(title,
+                      titleScroll,
+                      MARGIN_X,
+                      TITLE_Y,
+                      230);
 }
-
 
 //==============================================================
 // Rysowanie nazwy wykonawcy.
@@ -315,8 +372,11 @@ void Display::drawTitle(const char* title)
 
 void Display::drawArtist(const char* artist)
 {
-    epd.setCursor(MARGIN_X, ARTIST_Y);
-    epd.print(artist);
+drawScrollingText(artist,
+                  artistScroll,
+                  MARGIN_X,
+                  ARTIST_Y,
+                  230);
 }
 
 

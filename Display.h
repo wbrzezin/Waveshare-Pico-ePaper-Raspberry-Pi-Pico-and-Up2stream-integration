@@ -142,6 +142,40 @@ void initScroll(ScrollState& scroll,
                 const char* text,
                 int areaWidth);
 
+    
+    //==========================================================
+// Funkcja drawScrollingText()
+//
+// Rysuje tekst w zadanym obszarze.
+//
+// W kolejnych etapach funkcja zostanie rozszerzona
+// o obsługę przewijania.
+//
+// Parametry:
+//
+// text
+//      Tekst do wyświetlenia.
+//
+// scroll
+//      Stan przewijania.
+//
+// x
+//      Współrzędna X.
+//
+// y
+//      Współrzędna Y.
+//
+// width
+//      Szerokość pola tekstowego.
+//
+//==========================================================
+
+void drawScrollingText(const char* text,
+                       ScrollState& scroll,
+                       int x,
+                       int y,
+                       int width);
+    
     //----------------------------------------------------------
     // Rysowanie tytułu aktualnie odtwarzanego utworu.
     //----------------------------------------------------------

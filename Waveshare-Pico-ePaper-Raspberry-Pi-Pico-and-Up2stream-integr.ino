@@ -81,7 +81,7 @@ void setup()
 
 currentState.source      = "Spotify";
 currentState.artist      = "Dire Straits";
-currentState.title       = "Money For Nothing";
+currentState.title       = "Money For Nothing - Dire Straits - Brothers In Arms - Remastered 2025";
 
 currentState.currentTime = "02:15";
 currentState.totalTime   = "08:26";
