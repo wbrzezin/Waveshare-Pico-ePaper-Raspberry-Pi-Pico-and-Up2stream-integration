@@ -90,12 +90,12 @@ public:
     void splash();
 
    //----------------------------------------------------------
-// Wyświetlenie głównego ekranu odtwarzacza.
-//
-// Parametr:
-// player - komplet informacji o aktualnym stanie
-//          odtwarzacza.
-//----------------------------------------------------------
+   // Wyświetlenie głównego ekranu odtwarzacza.
+   //
+   // Parametr:
+   // player - komplet informacji o aktualnym stanie
+   //          odtwarzacza.
+   //----------------------------------------------------------
 
 void showPlayer(const PlayerState& player);
 
@@ -111,9 +111,9 @@ void showPlayer(const PlayerState& player);
 
 private:
 
-    //==========================================================
-    // Funkcje rysujące statyczne elementy interfejsu
-    //==========================================================
+//==========================================================
+// Funkcje odpowiedzialne za rysowanie elementów interfejsu
+//==========================================================
 
     //----------------------------------------------------------
     // Rysowanie nagłówka z nazwą źródła dźwięku.
@@ -146,31 +146,69 @@ private:
                          const char* totalTime,
                          int progress);
 
-    //==========================================================
-    // Dane aktualnie wyświetlane na ekranie
+ 
+     //----------------------------------------------------------
+    // Rysowanie aktualnego poziomu głośności.
+    //
+    // volume
+    //      Aktualny poziom głośności (0...100%).
+    //----------------------------------------------------------
+    void drawVolume(int volume);
+ 
+ 
+     //==========================================================
+     // Bufor aktualnie wyświetlanych danych
+     //==========================================================
+
+     //----------------------------------------------------------
+     // Aktualnie wyświetlane źródło dźwięku.
+     //----------------------------------------------------------
+     const char* currentSource = nullptr;
+
+    //----------------------------------------------------------
+    // Aktualnie wyświetlany poziom głośności.
+    //----------------------------------------------------------
+    int currentVolume = -1;
+
+    //----------------------------------------------------------
+    // Aktualnie wyświetlany postęp odtwarzania.
+    //----------------------------------------------------------
+    int currentProgress = -1;
+
+        //==========================================================
+    // Bufor aktualnie wyświetlanych danych
     //==========================================================
 
     //----------------------------------------------------------
-    // Aktualnie wyświetlany tytuł i wykonawca.
+    // Ostatnio wyświetlony stan odtwarzacza.
     //
-    // Dane są zapamiętywane, aby możliwe było ich późniejsze
-    // odświeżanie bez konieczności ponownego wywoływania
-    // funkcji showPlayer().
+    // Struktura przechowuje komplet informacji wykorzystanych
+    // podczas ostatniego rysowania ekranu.
+    //
+    // W kolejnych wersjach programu będzie porównywana z nowym
+    // stanem odtwarzacza, co pozwoli odświeżać tylko te
+    // elementy interfejsu, które rzeczywiście uległy zmianie.
     //----------------------------------------------------------
-    const char* currentTitle = nullptr;
-    const char* currentArtist = nullptr;
+    PlayerState currentState;
 
     //==========================================================
     // Parametry przewijania tekstu
     //==========================================================
 
     //----------------------------------------------------------
-    // Aktualne przesunięcie tekstu w pikselach.
+    // Aktualne przesunięcie tytułu utworu.
     //
-    // Wartości będą wykorzystywane podczas płynnego przewijania
-    // długich nazw utworów i wykonawców.
+    // Wartość określa liczbę pikseli, o jaką tekst został
+    // przesunięty podczas przewijania.
     //----------------------------------------------------------
     int titleOffset = 0;
+
+    //----------------------------------------------------------
+    // Aktualne przesunięcie nazwy wykonawcy.
+    //
+    // Wartość określa liczbę pikseli, o jaką tekst został
+    // przesunięty podczas przewijania.
+    //----------------------------------------------------------
     int artistOffset = 0;
 };
 

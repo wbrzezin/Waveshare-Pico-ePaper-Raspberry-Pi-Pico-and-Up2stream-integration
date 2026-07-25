@@ -132,68 +132,81 @@ void Display::splash()
 
 
 //==============================================================
-// Wyświetlenie głównego ekranu odtwarzacza
+// Funkcja showPlayer()
 //
-// Funkcja zapamiętuje aktualne informacje o utworze,
-// a następnie rysuje cały ekran od podstaw.
+// Wyświetla główny ekran odtwarzacza.
+//
+// Funkcja rysuje wszystkie elementy interfejsu użytkownika
+// na podstawie informacji zawartych w strukturze PlayerState.
+//
+// Parametry:
+//
+// player
+//      Aktualny stan odtwarzacza.
+//
 //==============================================================
 
 void Display::showPlayer(const PlayerState& player)
-
 {
-//----------------------------------------------------------
-// Zapamiętanie aktualnie wyświetlanych danych.
-//----------------------------------------------------------
+    Serial.println("showPlayer()");
 
-currentTitle = player.title;
-currentArtist = player.artist;
-
-    epd.setRotation(1);
-    epd.setFont(&FreeMonoBold9pt7b);
-    epd.setTextColor(GxEPD_BLACK);
-
-    epd.setFullWindow();
+    //----------------------------------------------------------
+    // Rozpoczęcie pełnego odświeżania wyświetlacza.
+    //----------------------------------------------------------
 
     epd.firstPage();
 
     do
     {
         //------------------------------------------------------
-        // Wyczyszczenie całego ekranu.
-        //------------------------------------------------------
-
-        epd.fillScreen(GxEPD_WHITE);
-
-        //------------------------------------------------------
-        // Rysowanie kolejnych elementów interfejsu.
+        // Nagłówek z nazwą źródła dźwięku.
         //------------------------------------------------------
 
         drawHeader(player.source);
 
+        //------------------------------------------------------
+        // Linia oddzielająca nagłówek od pozostałej części
+        // ekranu.
+        //------------------------------------------------------
+
         drawSeparator(HEADER_LINE);
+
+        //------------------------------------------------------
+        // Informacje o aktualnie odtwarzanym utworze.
+        //------------------------------------------------------
 
         drawTitle(player.title);
 
         drawArtist(player.artist);
 
+        //------------------------------------------------------
+        // Pasek postępu odtwarzania.
+        //------------------------------------------------------
+
         drawPlaybackBar(player.currentTime,
-                player.totalTime,
-                player.progress);
+                        player.totalTime,
+                        player.progress);
 
         //------------------------------------------------------
-        // Informacja o poziomie głośności.
-        // Docelowo zostanie zastąpiona ikoną głośnika oraz
-        // aktualnym poziomem głośności.
+        // Aktualny poziom głośności.
         //------------------------------------------------------
 
-        epd.setCursor(MARGIN_X, VOLUME_Y);
-        epd.print("VOL ");
-        epd.print(player.volume);
-        epd.print("%");
+        drawVolume(player.volume);
+
     }
     while (epd.nextPage());
-}
 
+    //----------------------------------------------------------
+    // Zapamiętanie ostatnio wyświetlonego stanu odtwarzacza.
+    //
+    // W kolejnych wersjach programu struktura będzie
+    // porównywana z nowym stanem odtwarzacza, co pozwoli
+    // odświeżać jedynie te elementy ekranu, które uległy
+    // zmianie.
+    //----------------------------------------------------------
+
+    currentState = player;
+}
 
 //==============================================================
 // Rysowanie nagłówka z nazwą źródła dźwięku.
@@ -306,6 +319,36 @@ void Display::drawPlaybackBar(const char* currentTime,
     epd.print(totalTime);
 }
 
+//==============================================================
+// Funkcja drawVolume()
+//
+// Rysuje aktualny poziom głośności.
+//
+// Parametry:
+//
+// volume
+//      Aktualny poziom głośności (0...100%).
+//
+//==============================================================
+
+void Display::drawVolume(int volume)
+{
+    //----------------------------------------------------------
+    // Ustawienie pozycji kursora.
+    //----------------------------------------------------------
+
+    epd.setCursor(0, VOLUME_Y);
+
+    //----------------------------------------------------------
+    // Wyświetlenie poziomu głośności.
+    //----------------------------------------------------------
+
+    epd.print("VOL ");
+
+    epd.print(volume);
+
+    epd.print("%");
+}
 
 //==============================================================
 // Rysowanie poziomej linii oddzielającej sekcje ekranu.
