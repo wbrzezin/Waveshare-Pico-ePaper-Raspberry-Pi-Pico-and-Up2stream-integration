@@ -144,4 +144,13 @@ previousState = currentState;
 
 void loop()
 {
+    //----------------------------------------------------------
+    // Aktualizacja przewijania.
+    //----------------------------------------------------------
+
+    ChangeFlags changes = ChangeFlags::None;
+
+    display.update(currentState, changes);
+
+    delay(40);
 }

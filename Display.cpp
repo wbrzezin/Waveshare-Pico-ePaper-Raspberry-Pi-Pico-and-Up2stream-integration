@@ -29,27 +29,65 @@
 // modyfikacji poniższych stałych.
 //==============================================================
 
+//--------------------------------------------------------------
+// Nagłówek
+//--------------------------------------------------------------
+
 constexpr int HEADER_Y         = 19;
 constexpr int HEADER_LINE      = 26;
+
+//--------------------------------------------------------------
+// Informacje o utworze
+//--------------------------------------------------------------
 
 constexpr int TITLE_Y          = 46;
 constexpr int ARTIST_Y         = 74;
 
+//--------------------------------------------------------------
+// Pasek postępu
+//--------------------------------------------------------------
+
 constexpr int BAR_X            = 0;
 constexpr int BAR_Y            = 85;
+
+//--------------------------------------------------------------
+// Ikona odtwarzania i czasy
+//--------------------------------------------------------------
 
 constexpr int PLAY_X           = 10;
 constexpr int PLAY_Y           = 98;
 constexpr int TIME_Y           = 103;
 
-constexpr int VOLUME_Y         = 121;
-
-constexpr int MARGIN_X         = 10;
-
 constexpr int CURRENT_TIME_X   = 22;
 constexpr int TOTAL_TIME_X     = 185;
 
+//--------------------------------------------------------------
+// Głośność
+//--------------------------------------------------------------
 
+constexpr int VOLUME_Y         = 121;
+
+//--------------------------------------------------------------
+// Marginesy ekranu
+//--------------------------------------------------------------
+
+constexpr int MARGIN_X         = 10;
+
+//--------------------------------------------------------------
+// Parametry obszaru przewijanego tekstu
+//--------------------------------------------------------------
+
+constexpr int TEXT_X               = MARGIN_X;
+constexpr int TEXT_WIDTH           = 230;
+
+//--------------------------------------------------------------
+// Parametry animacji przewijania
+//--------------------------------------------------------------
+
+constexpr int SCROLL_GAP           = 40;
+constexpr int SCROLL_STEP          = 1;
+constexpr uint32_t SCROLL_INTERVAL = 40;
+constexpr uint32_t SCROLL_PAUSE    = 1500;
 
 //==============================================================
 // Konfiguracja interfejsu SPI dla Raspberry Pi Pico RP2040
@@ -204,6 +242,55 @@ Serial.println();
 
 }
 
+//==============================================================
+// Funkcja updateScroll()
+//
+// Aktualizuje pozycję przewijanego tekstu.
+//
+// Funkcja wykonywana jest przy każdym odświeżeniu ekranu.
+// Jeżeli przewijanie nie jest wymagane, kończy działanie.
+//
+//==============================================================
+
+void Display::updateScroll(ScrollState& scroll)
+{
+    //----------------------------------------------------------
+    // Brak potrzeby przewijania.
+    //----------------------------------------------------------
+
+    if (!scroll.enabled)
+        return;
+
+    //----------------------------------------------------------
+    // Aktualizacja tylko co określony czas.
+    //----------------------------------------------------------
+
+    uint32_t now = millis();
+
+    if (now - scroll.lastUpdate < SCROLL_INTERVAL)
+        return;
+
+    scroll.lastUpdate = now;
+
+    //----------------------------------------------------------
+    // Przesunięcie tekstu.
+    //----------------------------------------------------------
+
+    scroll.offset += SCROLL_STEP;
+
+    Serial.print("Offset: ");
+     Serial.println(scroll.offset);
+
+    //----------------------------------------------------------
+    // Tymczasowo po dojściu do końca wracamy na początek.
+    // W następnym etapie zastąpimy to pauzami.
+    //----------------------------------------------------------
+
+    if (scroll.offset > scroll.textWidth + SCROLL_GAP)
+    {
+        scroll.offset = 0;
+    }
+}
 
 //==============================================================
 // Funkcja showPlayer()
@@ -225,17 +312,6 @@ void Display::showPlayer(const PlayerState& player)
     Serial.println("showPlayer()");
 
 
-//--------------------------------------------------------------
-// Przygotowanie parametrów przewijania tekstu.
-//--------------------------------------------------------------
-
-initScroll(titleScroll,
-           player.title,
-           230);
-
-initScroll(artistScroll,
-           player.artist,
-           230);
 
     //----------------------------------------------------------
     // Rozpoczęcie pełnego odświeżania wyświetlacza.
@@ -245,43 +321,7 @@ initScroll(artistScroll,
 
     do
     {
-        //------------------------------------------------------
-        // Nagłówek z nazwą źródła dźwięku.
-        //------------------------------------------------------
-
-        drawHeader(player.source);
-
-        //------------------------------------------------------
-        // Linia oddzielająca nagłówek od pozostałej części
-        // ekranu.
-        //------------------------------------------------------
-
-        drawSeparator(HEADER_LINE);
-
-
-      
-      
-        //------------------------------------------------------
-        // Informacje o aktualnie odtwarzanym utworze.
-        //------------------------------------------------------
-
-        drawTitle(player.title);
-
-        drawArtist(player.artist);
-
-        //------------------------------------------------------
-        // Pasek postępu odtwarzania.
-        //------------------------------------------------------
-
-        drawPlaybackBar(player.currentTime,
-                        player.totalTime,
-                        player.progress);
-
-        //------------------------------------------------------
-        // Aktualny poziom głośności.
-        //------------------------------------------------------
-
-        drawVolume(player.volume);
+      drawPlayerScreen(player);
 
     }
     while (epd.nextPage());
@@ -305,7 +345,15 @@ void Display::drawScrollingText(const char* text,
     (void)scroll;
     (void)width;
 
+   if (scroll.enabled)
+{
+    epd.setCursor(x - scroll.offset, y);
+}
+else
+{
     epd.setCursor(x, y);
+} 
+    epd.setCursor(x - scroll.offset, y);
     epd.print(text);
 }
 
@@ -327,18 +375,92 @@ void Display::drawScrollingText(const char* text,
 void Display::update(const PlayerState& player,
                      ChangeFlags changes)
 {
+  //----------------------------------------------------------
+// Jeżeli zmienił się tytuł utworu,
+// zainicjalizuj przewijanie od początku.
+//----------------------------------------------------------
+
+if ((changes & ChangeFlags::Title) != ChangeFlags::None)
+{
+    initScroll(titleScroll,
+               player.title,
+               TEXT_WIDTH);
+}
+
+//----------------------------------------------------------
+// Jeżeli zmienił się wykonawca,
+// zainicjalizuj przewijanie od początku.
+//----------------------------------------------------------
+
+if ((changes & ChangeFlags::Artist) != ChangeFlags::None)
+{
+    initScroll(artistScroll,
+               player.artist,
+               TEXT_WIDTH);
+}
+
+//----------------------------------------------------------
+// Aktualizacja pozycji przewijania.
+//----------------------------------------------------------
+
+updateScroll(titleScroll);
+updateScroll(artistScroll);
+
+//==============================================================
+// Funkcja drawPlayerScreen()
+//
+// Rysuje kompletną zawartość ekranu odtwarzacza.
+//
+// Funkcja odpowiada wyłącznie za rysowanie elementów
+// interfejsu użytkownika.
+//
+// Nie rozpoczyna ani nie kończy odświeżania wyświetlacza.
+//
+//==============================================================
+
+void Display::drawPlayerScreen(const PlayerState& player)
+{
     //----------------------------------------------------------
-    // Parametr będzie wykorzystywany w kolejnych etapach
-    // projektu.
+    // Nagłówek z nazwą źródła.
     //----------------------------------------------------------
 
-    (void)changes;
+    drawHeader(player.source);
 
     //----------------------------------------------------------
-    // Tymczasowo wykonywane jest pełne odświeżenie ekranu.
+    // Linia oddzielająca nagłówek.
     //----------------------------------------------------------
 
-    showPlayer(player);
+    drawSeparator(HEADER_LINE);
+
+    //----------------------------------------------------------
+    // Informacje o aktualnym utworze.
+    //----------------------------------------------------------
+
+    drawTitle(player.title);
+
+    drawArtist(player.artist);
+
+    //----------------------------------------------------------
+    // Pasek postępu.
+    //----------------------------------------------------------
+
+    drawPlaybackBar(player.currentTime,
+                    player.totalTime,
+                    player.progress);
+
+    //----------------------------------------------------------
+    // Poziom głośności.
+    //----------------------------------------------------------
+
+    drawVolume(player.volume);
+}
+
+
+//----------------------------------------------------------
+// Wyświetlenie ekranu.
+//----------------------------------------------------------
+
+showPlayer(player);
 }
 
 

@@ -133,8 +133,7 @@ private:
 //==============================================================
 // Funkcja initScroll()
 //
-// Oblicza szerokość tekstu oraz określa, czy wymagane jest
-// przewijanie.
+// Oblicza parametry przewijania dla wskazanego tekstu.
 //
 //==============================================================
 
@@ -142,40 +141,31 @@ void initScroll(ScrollState& scroll,
                 const char* text,
                 int areaWidth);
 
-    
-    //==========================================================
+//==============================================================
+// Funkcja updateScroll()
+//
+// Aktualizuje pozycję przewijanego tekstu.
+//
+//==============================================================
+
+void updateScroll(ScrollState& scroll);
+
+//==============================================================
 // Funkcja drawScrollingText()
 //
 // Rysuje tekst w zadanym obszarze.
 //
-// W kolejnych etapach funkcja zostanie rozszerzona
-// o obsługę przewijania.
-//
-// Parametry:
-//
-// text
-//      Tekst do wyświetlenia.
-//
-// scroll
-//      Stan przewijania.
-//
-// x
-//      Współrzędna X.
-//
-// y
-//      Współrzędna Y.
-//
-// width
-//      Szerokość pola tekstowego.
-//
-//==========================================================
+//==============================================================
 
 void drawScrollingText(const char* text,
                        ScrollState& scroll,
                        int x,
                        int y,
                        int width);
-    
+
+
+
+
     //----------------------------------------------------------
     // Rysowanie tytułu aktualnie odtwarzanego utworu.
     //----------------------------------------------------------
