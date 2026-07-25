@@ -293,6 +293,41 @@ void Display::updateScroll(ScrollState& scroll)
 }
 
 //==============================================================
+// Funkcja refreshFull()
+//
+// Wykonuje pełne odświeżenie wyświetlacza.
+//
+//==============================================================
+
+void Display::refreshFull(const PlayerState& player)
+{
+    epd.firstPage();
+
+    do
+    {
+        drawPlayerScreen(player);
+    }
+    while (epd.nextPage());
+}
+
+//==============================================================
+// Funkcja refreshPartial()
+//
+// Wykonuje częściowe odświeżenie wyświetlacza.
+//
+// Implementacja zostanie dodana w kolejnym etapie.
+//
+//==============================================================
+
+void Display::refreshPartial(const PlayerState& player,
+                             ChangeFlags changes)
+{
+    (void)player;
+    (void)changes;
+}
+
+
+//==============================================================
 // Funkcja showPlayer()
 //
 // Wyświetla główny ekran odtwarzacza.
@@ -311,29 +346,14 @@ void Display::showPlayer(const PlayerState& player)
 {
     Serial.println("showPlayer()");
 
-
-
-    //----------------------------------------------------------
-    // Rozpoczęcie pełnego odświeżania wyświetlacza.
-    //----------------------------------------------------------
-
-    epd.firstPage();
-
-    do
-    {
-      drawPlayerScreen(player);
-
-    }
-    while (epd.nextPage());
-
- 
+    refreshFull(player);
 }
 
 
 //==============================================================
 // Funkcja drawScrollingText()
 //
-// ...
+// Rysuje tekst z uwzględnieniem przewijania.
 //==============================================================
 
 void Display::drawScrollingText(const char* text,
@@ -342,18 +362,29 @@ void Display::drawScrollingText(const char* text,
                                 int y,
                                 int width)
 {
-    (void)scroll;
-    (void)width;
+    //----------------------------------------------------------
+    // Wyczyść obszar tekstu.
+    //----------------------------------------------------------
 
-   if (scroll.enabled)
-{
-    epd.setCursor(x - scroll.offset, y);
-}
-else
-{
-    epd.setCursor(x, y);
-} 
-    epd.setCursor(x - scroll.offset, y);
+    epd.fillRect(x,
+                 y - 16,
+                 width,
+                 20,
+                 GxEPD_WHITE);
+
+    //----------------------------------------------------------
+    // Ustaw pozycję kursora.
+    //----------------------------------------------------------
+
+    if (scroll.enabled)
+        epd.setCursor(x - scroll.offset, y);
+    else
+        epd.setCursor(x, y);
+
+    //----------------------------------------------------------
+    // Narysuj tekst.
+    //----------------------------------------------------------
+
     epd.print(text);
 }
 
@@ -375,36 +406,46 @@ else
 void Display::update(const PlayerState& player,
                      ChangeFlags changes)
 {
-  //----------------------------------------------------------
-// Jeżeli zmienił się tytuł utworu,
-// zainicjalizuj przewijanie od początku.
-//----------------------------------------------------------
 
-if ((changes & ChangeFlags::Title) != ChangeFlags::None)
-{
+   //----------------------------------------------------------
+   // Jeżeli zmienił się tytuł utworu,
+   // zainicjalizuj przewijanie od początku.
+   //----------------------------------------------------------
+
+   if ((changes & ChangeFlags::Title) != ChangeFlags::None)
+   {
     initScroll(titleScroll,
                player.title,
                TEXT_WIDTH);
-}
+   }
 
-//----------------------------------------------------------
-// Jeżeli zmienił się wykonawca,
-// zainicjalizuj przewijanie od początku.
-//----------------------------------------------------------
+   //----------------------------------------------------------
+   // Jeżeli zmienił się wykonawca,
+   // zainicjalizuj przewijanie od początku.
+   //----------------------------------------------------------
 
-if ((changes & ChangeFlags::Artist) != ChangeFlags::None)
-{
+   if ((changes & ChangeFlags::Artist) != ChangeFlags::None)
+   {
     initScroll(artistScroll,
                player.artist,
                TEXT_WIDTH);
+   }
+
+   //----------------------------------------------------------
+   // Aktualizacja pozycji przewijania.
+   //----------------------------------------------------------
+
+   updateScroll(titleScroll);
+   updateScroll(artistScroll);
+
+
+   //----------------------------------------------------------
+   // Wyświetlenie ekranu.
+   //----------------------------------------------------------
+
+   showPlayer(player);
 }
 
-//----------------------------------------------------------
-// Aktualizacja pozycji przewijania.
-//----------------------------------------------------------
-
-updateScroll(titleScroll);
-updateScroll(artistScroll);
 
 //==============================================================
 // Funkcja drawPlayerScreen()
@@ -433,7 +474,7 @@ void Display::drawPlayerScreen(const PlayerState& player)
     drawSeparator(HEADER_LINE);
 
     //----------------------------------------------------------
-    // Informacje o aktualnym utworze.
+    // Informacje o aktualnie odtwarzanym utworze.
     //----------------------------------------------------------
 
     drawTitle(player.title);
@@ -441,7 +482,7 @@ void Display::drawPlayerScreen(const PlayerState& player)
     drawArtist(player.artist);
 
     //----------------------------------------------------------
-    // Pasek postępu.
+    // Pasek postępu odtwarzania.
     //----------------------------------------------------------
 
     drawPlaybackBar(player.currentTime,
@@ -449,18 +490,10 @@ void Display::drawPlayerScreen(const PlayerState& player)
                     player.progress);
 
     //----------------------------------------------------------
-    // Poziom głośności.
+    // Aktualny poziom głośności.
     //----------------------------------------------------------
 
     drawVolume(player.volume);
-}
-
-
-//----------------------------------------------------------
-// Wyświetlenie ekranu.
-//----------------------------------------------------------
-
-showPlayer(player);
 }
 
 

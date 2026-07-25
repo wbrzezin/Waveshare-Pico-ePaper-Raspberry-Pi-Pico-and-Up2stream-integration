@@ -103,6 +103,29 @@ private:
     // Funkcje odpowiedzialne za rysowanie interfejsu użytkownika
     //==========================================================
 
+//==============================================================
+// Funkcja refreshFull()
+//
+// Wykonuje pełne odświeżenie wyświetlacza.
+//
+//==============================================================
+
+void refreshFull(const PlayerState& player);
+
+//==============================================================
+// Funkcja refreshPartial()
+//
+// Wykonuje częściowe odświeżenie wyświetlacza.
+//
+// Na razie funkcja pozostaje pusta.
+// W kolejnych etapach będzie wykorzystywać setPartialWindow().
+//
+//==============================================================
+
+void refreshPartial(const PlayerState& player,
+                    ChangeFlags changes);
+
+
     //==========================================================
     // Funkcja drawPlayerScreen()
     //
