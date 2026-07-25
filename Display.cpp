@@ -252,14 +252,14 @@ Serial.println();
 //
 //==============================================================
 
-void Display::updateScroll(ScrollState& scroll)
+bool Display::updateScroll(ScrollState& scroll)
 {
     //----------------------------------------------------------
     // Brak potrzeby przewijania.
     //----------------------------------------------------------
 
     if (!scroll.enabled)
-        return;
+        return false;
 
     //----------------------------------------------------------
     // Aktualizacja tylko co określony czas.
@@ -268,7 +268,7 @@ void Display::updateScroll(ScrollState& scroll)
     uint32_t now = millis();
 
     if (now - scroll.lastUpdate < SCROLL_INTERVAL)
-        return;
+        return false;
 
     scroll.lastUpdate = now;
 
@@ -290,6 +290,8 @@ void Display::updateScroll(ScrollState& scroll)
     {
         scroll.offset = 0;
     }
+return true;
+
 }
 
 //==============================================================
@@ -315,17 +317,39 @@ void Display::refreshFull(const PlayerState& player)
 //
 // Wykonuje częściowe odświeżenie wyświetlacza.
 //
-// Implementacja zostanie dodana w kolejnym etapie.
+// Na obecnym etapie odświeżany jest cały ekran, ale z użyciem
+// trybu Partial Update. Pozwala to sprawdzić działanie
+// szybkiego odświeżania bez migotania.
 //
 //==============================================================
 
 void Display::refreshPartial(const PlayerState& player,
                              ChangeFlags changes)
 {
-    (void)player;
     (void)changes;
-}
 
+    //----------------------------------------------------------
+    // Ustaw obszar częściowego odświeżania.
+    //----------------------------------------------------------
+
+    epd.setPartialWindow(
+        0,
+        0,
+        epd.width(),
+        epd.height());
+
+    //----------------------------------------------------------
+    // Wykonaj częściowe odświeżenie.
+    //----------------------------------------------------------
+
+    epd.firstPage();
+
+    do
+    {
+        drawPlayerScreen(player);
+    }
+    while (epd.nextPage());
+}
 
 //==============================================================
 // Funkcja showPlayer()
@@ -435,15 +459,24 @@ void Display::update(const PlayerState& player,
    // Aktualizacja pozycji przewijania.
    //----------------------------------------------------------
 
-   updateScroll(titleScroll);
-   updateScroll(artistScroll);
+    bool titleMoved  = updateScroll(titleScroll);
+    bool artistMoved = updateScroll(artistScroll);
 
 
-   //----------------------------------------------------------
-   // Wyświetlenie ekranu.
-   //----------------------------------------------------------
+ //----------------------------------------------------------
+ // Jeżeli wykryto jakąkolwiek zmianę,
+ // wykonaj częściowe odświeżenie.
+ //
+ // Pełne odświeżenie wykonywane jest tylko po uruchomieniu
+ // urządzenia.
+ //----------------------------------------------------------
 
-   showPlayer(player);
+  if (changes != ChangeFlags::None ||
+    titleMoved ||
+    artistMoved)
+  {
+    refreshPartial(player, changes);
+  }
 }
 
 

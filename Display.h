@@ -171,7 +171,7 @@ void initScroll(ScrollState& scroll,
 //
 //==============================================================
 
-void updateScroll(ScrollState& scroll);
+bool updateScroll(ScrollState& scroll);
 
 //==============================================================
 // Funkcja drawScrollingText()
