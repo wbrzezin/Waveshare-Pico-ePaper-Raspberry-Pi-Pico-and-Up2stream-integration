@@ -80,14 +80,11 @@ constexpr int MARGIN_X         = 10;
 constexpr int TEXT_X               = MARGIN_X;
 constexpr int TEXT_WIDTH           = 230;
 
-//--------------------------------------------------------------
-// Parametry animacji przewijania
-//--------------------------------------------------------------
 
-constexpr int SCROLL_GAP           = 40;
-constexpr int SCROLL_STEP          = 1;
-constexpr uint32_t SCROLL_INTERVAL = 40;
-constexpr uint32_t SCROLL_PAUSE    = 1500;
+//==============================================================
+// Czas wyświetlania jednej strony tekstu [ms]
+//==============================================================
+constexpr uint32_t PAGE_DISPLAY_TIME = 2000;
 
 //==============================================================
 // Konfiguracja interfejsu SPI dla Raspberry Pi Pico RP2040
@@ -190,55 +187,147 @@ void Display::initScroll(ScrollState& scroll,
     // Oblicz szerokość napisu.
     //----------------------------------------------------------
 
-    int16_t x1;
-    int16_t y1;
-
-    uint16_t w;
-    uint16_t h;
-
-    epd.getTextBounds(text,
-                      0,
-                      0,
-                      &x1,
-                      &y1,
-                      &w,
-                      &h);
-
-    scroll.textWidth = w;
+   scroll.textWidth = measureTextWidth(text);
 
     //----------------------------------------------------------
     // Sprawdź, czy wymagane jest przewijanie.
     //----------------------------------------------------------
 
-    scroll.enabled = (w > areaWidth);
+    scroll.enabled = (scroll.textWidth > areaWidth);
 
-    //----------------------------------------------------------
-    // Wyzeruj stan animacji.
-    //----------------------------------------------------------
+ //----------------------------------------------------------
+ // Wyzeruj stan wyświetlania stron.
+ //----------------------------------------------------------
 
-    scroll.offset = 0;
-    scroll.lastUpdate = millis();
+ scroll.currentPage = 0;
+ scroll.pageCount   = 0;
+ scroll.lastUpdate  = millis();
 
-    scroll.pause = false;
-    scroll.pauseStart = 0;
+ //----------------------------------------------------------
+ // Wyczyść przygotowane strony.
+ //----------------------------------------------------------
 
-//--------------------------------------------------------------
-// Informacje diagnostyczne.
-//--------------------------------------------------------------
+ for (uint8_t i = 0; i < 10; i++)
+ {
+    scroll.pages[i] = "";
+ }
 
-Serial.print("Tekst: ");
-Serial.println(text);
+ //----------------------------------------------------------
+ // Jeżeli tekst mieści się w całości, przygotuj tylko jedną
+ // stronę.
+ //----------------------------------------------------------
 
-Serial.print("Szerokość: ");
-Serial.println(scroll.textWidth);
+ if (!scroll.enabled)
+ {
+    scroll.pages[0] = text;
+    scroll.pageCount = 1;
+    return;
+ }
 
-Serial.print("Pole: ");
-Serial.println(scroll.areaWidth);
+ //----------------------------------------------------------
+ // Podział długiego tekstu na kolejne strony.
+ //----------------------------------------------------------
 
-Serial.print("Przewijanie: ");
-Serial.println(scroll.enabled ? "TAK" : "NIE");
+ String source = text;
 
-Serial.println();
+ uint16_t start = 0;
+
+
+ //----------------------------------------------------------
+ // Podział tekstu na strony z zachowaniem całych wyrazów.
+ //----------------------------------------------------------
+
+ while (start < source.length() &&
+       scroll.pageCount < 10)
+ {
+    String page;
+
+    //------------------------------------------------------
+    // Pominięcie spacji na początku kolejnej strony.
+    //------------------------------------------------------
+
+    while (start < source.length() &&
+           source[start] == ' ')
+    {
+        start++;
+    }
+
+    //------------------------------------------------------
+    // Dopóki mieszczą się kolejne wyrazy.
+    //------------------------------------------------------
+
+    while (start < source.length())
+    {
+        //--------------------------------------------------
+        // Wyznaczenie następnego wyrazu.
+        //--------------------------------------------------
+
+        uint16_t end = start;
+
+        while (end < source.length() &&
+               source[end] != ' ')
+        {
+            end++;
+        }
+
+        String word = source.substring(start, end);
+
+        //--------------------------------------------------
+        // Próba dodania wyrazu do bieżącej strony.
+        //--------------------------------------------------
+
+        String candidate;
+
+        if (page.length() == 0)
+            candidate = word;
+        else
+            candidate = page + " " + word;
+
+        if (measureTextWidth(candidate) <= areaWidth)
+        {
+            page = candidate;
+            start = end;
+            continue;
+        }
+
+        //--------------------------------------------------
+        // Strona jest pełna.
+        //--------------------------------------------------
+
+        break;
+    }
+
+    //------------------------------------------------------
+    // Zabezpieczenie dla bardzo długiego pojedynczego wyrazu.
+    //------------------------------------------------------
+
+
+    if (page.length() == 0)
+    {
+        while (start < source.length())
+        {
+            String candidate = page + source[start];
+
+       if (measureTextWidth(candidate) > areaWidth)
+          break;
+
+            page = candidate;
+            start++;
+        }
+    }
+
+    //------------------------------------------------------
+    // Zapisanie przygotowanej strony.
+    //------------------------------------------------------
+
+    if (page.length() == 0)
+    break;
+
+scroll.pages[scroll.pageCount++] = page;
+
+
+}
+
 
 }
 
@@ -252,46 +341,51 @@ Serial.println();
 //
 //==============================================================
 
+//==============================================================
+// Aktualizacja wyświetlania kolejnych stron tekstu
+//==============================================================
 bool Display::updateScroll(ScrollState& scroll)
 {
     //----------------------------------------------------------
-    // Brak potrzeby przewijania.
+    // Jeżeli jest tylko jedna strona, nic nie zmieniamy.
     //----------------------------------------------------------
 
-    if (!scroll.enabled)
+    if (scroll.pageCount <= 1)
         return false;
 
     //----------------------------------------------------------
-    // Aktualizacja tylko co określony czas.
+    // Sprawdzenie czasu od ostatniej zmiany strony.
     //----------------------------------------------------------
 
     uint32_t now = millis();
+    
 
-    if (now - scroll.lastUpdate < SCROLL_INTERVAL)
+    if ((now - scroll.lastUpdate) < PAGE_DISPLAY_TIME)
         return false;
+
+    //----------------------------------------------------------
+    // Zapamiętanie czasu przełączenia.
+    //----------------------------------------------------------
 
     scroll.lastUpdate = now;
 
     //----------------------------------------------------------
-    // Przesunięcie tekstu.
+    // Przejście do następnej strony.
     //----------------------------------------------------------
 
-    scroll.offset += SCROLL_STEP;
-
-    Serial.print("Offset: ");
-     Serial.println(scroll.offset);
+    scroll.currentPage++;
 
     //----------------------------------------------------------
-    // Tymczasowo po dojściu do końca wracamy na początek.
-    // W następnym etapie zastąpimy to pauzami.
+    // Powrót do pierwszej strony.
     //----------------------------------------------------------
 
-    if (scroll.offset > scroll.textWidth + SCROLL_GAP)
-    {
-        scroll.offset = 0;
-    }
-return true;
+    if (scroll.currentPage >= scroll.pageCount)
+        scroll.currentPage = 0;
 
+    return true;
+
+
+    
 }
 
 //==============================================================
@@ -313,35 +407,36 @@ void Display::refreshFull(const PlayerState& player)
 }
 
 //==============================================================
-// Funkcja refreshPartial()
+// Częściowe odświeżenie ekranu
 //
-// Wykonuje częściowe odświeżenie wyświetlacza.
+// Sterownik GDEY0213B74 wykonuje częściowe odświeżenie praktycznie
+// z takim samym czasem niezależnie od wielkości okna. Z tego
+// powodu obecnie odświeżany jest cały ekran.
 //
-// Na obecnym etapie odświeżany jest cały ekran, ale z użyciem
-// trybu Partial Update. Pozwala to sprawdzić działanie
-// szybkiego odświeżania bez migotania.
-//
+// Parametr 'changes' pozostaje w funkcji, ponieważ w przyszłości
+// może zostać wykorzystany dla innych sterowników lub po dalszej
+// optymalizacji kodu.
 //==============================================================
-
 void Display::refreshPartial(const PlayerState& player,
                              ChangeFlags changes)
 {
     (void)changes;
 
     //----------------------------------------------------------
-    // Ustaw obszar częściowego odświeżania.
+    // Ustawienie całego ekranu jako obszaru częściowego
+    // odświeżania.
     //----------------------------------------------------------
-
     epd.setPartialWindow(
         0,
         0,
         epd.width(),
         epd.height());
 
-    //----------------------------------------------------------
-    // Wykonaj częściowe odświeżenie.
-    //----------------------------------------------------------
 
+
+    //----------------------------------------------------------
+    // Narysowanie całego ekranu odtwarzacza.
+    //----------------------------------------------------------
     epd.firstPage();
 
     do
@@ -349,6 +444,7 @@ void Display::refreshPartial(const PlayerState& player,
         drawPlayerScreen(player);
     }
     while (epd.nextPage());
+
 }
 
 //==============================================================
@@ -400,17 +496,19 @@ void Display::drawScrollingText(const char* text,
     // Ustaw pozycję kursora.
     //----------------------------------------------------------
 
-    if (scroll.enabled)
-        epd.setCursor(x - scroll.offset, y);
-    else
-        epd.setCursor(x, y);
+    //----------------------------------------------------------
+    // Wyświetlenie tekstu zawsze w stałej pozycji.
+    //----------------------------------------------------------
+     epd.setCursor(x, y);
 
+   
     //----------------------------------------------------------
     // Narysuj tekst.
     //----------------------------------------------------------
-
-    epd.print(text);
+    epd.setTextWrap(false);
+    epd.print(getVisibleText(text, scroll, width));
 }
+
 
 //==============================================================
 // Funkcja update()
@@ -441,6 +539,8 @@ void Display::update(const PlayerState& player,
     initScroll(titleScroll,
                player.title,
                TEXT_WIDTH);
+
+              
    }
 
    //----------------------------------------------------------
@@ -470,6 +570,7 @@ void Display::update(const PlayerState& player,
  // Pełne odświeżenie wykonywane jest tylko po uruchomieniu
  // urządzenia.
  //----------------------------------------------------------
+
 
   if (changes != ChangeFlags::None ||
     titleMoved ||
@@ -552,6 +653,31 @@ void Display::drawTitle(const char* title)
                       MARGIN_X,
                       TITLE_Y,
                       230);
+}
+
+//==============================================================
+// Obliczenie szerokości tekstu
+//
+// Funkcja zwraca szerokość napisu w pikselach dla aktualnie
+// ustawionej czcionki.
+//==============================================================
+uint16_t Display::measureTextWidth(const String& text)
+{
+    int16_t x1;
+    int16_t y1;
+
+    uint16_t w;
+    uint16_t h;
+
+    epd.getTextBounds(text,
+                      0,
+                      0,
+                      &x1,
+                      &y1,
+                      &w,
+                      &h);
+
+    return w;
 }
 
 //==============================================================
@@ -688,4 +814,33 @@ void Display::drawSeparator(int y)
                  epd.width() - 1,
                  y,
                  GxEPD_BLACK);
+}
+
+//==============================================================
+// Zwrócenie aktualnie wyświetlanej strony tekstu
+//==============================================================
+String Display::getVisibleText(
+    const String& text,
+    ScrollState& scroll,
+    int maxWidth)
+{
+    (void)text;
+    (void)maxWidth;
+
+    //----------------------------------------------------------
+    // Brak przygotowanych stron.
+    //----------------------------------------------------------
+    if (scroll.pageCount == 0)
+        return "";
+
+    //----------------------------------------------------------
+    // Zabezpieczenie przed błędnym indeksem.
+    //----------------------------------------------------------
+    if (scroll.currentPage >= scroll.pageCount)
+        scroll.currentPage = 0;
+
+    //----------------------------------------------------------
+    // Zwrócenie aktualnej strony.
+    //----------------------------------------------------------
+    return scroll.pages[scroll.currentPage];
 }

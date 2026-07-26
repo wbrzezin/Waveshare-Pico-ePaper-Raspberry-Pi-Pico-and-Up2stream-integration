@@ -152,6 +152,17 @@ void refreshPartial(const PlayerState& player,
     //----------------------------------------------------------
     void drawSeparator(int y);
 
+  uint16_t measureTextWidth(const String& text);
+
+  //----------------------------------------------------------
+  // Wyznaczenie fragmentu tekstu mieszczącego się
+  // w dostępnym obszarze.
+  //----------------------------------------------------------
+ String getVisibleText(
+    const String& text,
+    ScrollState& scroll,
+    int maxWidth);
+
 
 //==============================================================
 // Funkcja initScroll()
