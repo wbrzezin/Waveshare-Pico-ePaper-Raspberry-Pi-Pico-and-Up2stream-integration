@@ -152,7 +152,12 @@ void refreshPartial(const PlayerState& player,
     //----------------------------------------------------------
     void drawSeparator(int y);
 
-  uint16_t measureTextWidth(const String& text);
+    uint16_t measureTextWidth(const String& text);
+
+    int scorePage(const String& page,
+              const String& remaining,
+              int areaWidth);
+
 
   //----------------------------------------------------------
   // Wyznaczenie fragmentu tekstu mieszczącego się

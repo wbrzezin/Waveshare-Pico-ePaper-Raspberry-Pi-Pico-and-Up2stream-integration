@@ -224,26 +224,22 @@ void Display::initScroll(ScrollState& scroll,
     return;
  }
 
- //----------------------------------------------------------
- // Podział długiego tekstu na kolejne strony.
- //----------------------------------------------------------
+//----------------------------------------------------------
+// Podział tekstu na kolejne strony.
+//
+// Każda strona zawiera maksymalnie dużo pełnych wyrazów,
+// które mieszczą się w dostępnym obszarze.
+//----------------------------------------------------------
 
- String source = text;
+String source(text);
 
- uint16_t start = 0;
+uint16_t start = 0;
 
-
- //----------------------------------------------------------
- // Podział tekstu na strony z zachowaniem całych wyrazów.
- //----------------------------------------------------------
-
- while (start < source.length() &&
+while (start < source.length() &&
        scroll.pageCount < 10)
- {
-    String page;
-
+{
     //------------------------------------------------------
-    // Pominięcie spacji na początku kolejnej strony.
+    // Pominięcie spacji na początku strony.
     //------------------------------------------------------
 
     while (start < source.length() &&
@@ -252,17 +248,21 @@ void Display::initScroll(ScrollState& scroll,
         start++;
     }
 
-    //------------------------------------------------------
-    // Dopóki mieszczą się kolejne wyrazy.
-    //------------------------------------------------------
+    if (start >= source.length())
+        break;
 
-    while (start < source.length())
+    String bestPage = "";
+    uint16_t nextStart = start;
+
+    uint16_t pos = start;
+
+    while (true)
     {
         //--------------------------------------------------
-        // Wyznaczenie następnego wyrazu.
+        // Odszukaj koniec kolejnego wyrazu.
         //--------------------------------------------------
 
-        uint16_t end = start;
+        uint16_t end = pos;
 
         while (end < source.length() &&
                source[end] != ' ')
@@ -270,63 +270,85 @@ void Display::initScroll(ScrollState& scroll,
             end++;
         }
 
-        String word = source.substring(start, end);
-
         //--------------------------------------------------
-        // Próba dodania wyrazu do bieżącej strony.
+        // Zbuduj kandydata.
         //--------------------------------------------------
 
         String candidate;
 
-        if (page.length() == 0)
-            candidate = word;
+        if (bestPage.length() == 0)
+            candidate = source.substring(start, end);
         else
-            candidate = page + " " + word;
+            candidate = bestPage + " " + source.substring(pos, end);
 
-        if (measureTextWidth(candidate) <= areaWidth)
+        //--------------------------------------------------
+        // Sprawdź szerokość.
+        //--------------------------------------------------
+
+        if (measureTextWidth(candidate) > areaWidth)
+            break;
+
+        bestPage = candidate;
+        nextStart = end;
+
+        //--------------------------------------------------
+        // Koniec tekstu.
+        //--------------------------------------------------
+
+        if (end >= source.length())
+            break;
+
+        //--------------------------------------------------
+        // Przejście do następnego wyrazu.
+        //--------------------------------------------------
+
+        pos = end;
+
+        while (pos < source.length() &&
+               source[pos] == ' ')
         {
-            page = candidate;
-            start = end;
-            continue;
+            pos++;
         }
-
-        //--------------------------------------------------
-        // Strona jest pełna.
-        //--------------------------------------------------
-
-        break;
     }
 
     //------------------------------------------------------
-    // Zabezpieczenie dla bardzo długiego pojedynczego wyrazu.
+    // Bardzo długi pojedynczy wyraz.
     //------------------------------------------------------
 
-
-    if (page.length() == 0)
+    if (bestPage.length() == 0)
     {
-        while (start < source.length())
+        uint16_t end = start + 1;
+
+        while (end <= source.length())
         {
-            String candidate = page + source[start];
+            String candidate = source.substring(start, end);
 
-       if (measureTextWidth(candidate) > areaWidth)
-          break;
+            if (measureTextWidth(candidate) > areaWidth)
+            {
+                end--;
+                break;
+            }
 
-            page = candidate;
-            start++;
+            end++;
         }
+
+        if (end <= start)
+            end = start + 1;
+
+        bestPage = source.substring(start, end);
+        nextStart = end;
     }
 
     //------------------------------------------------------
-    // Zapisanie przygotowanej strony.
+    // Zapis strony.
     //------------------------------------------------------
 
-    if (page.length() == 0)
-    break;
+    scroll.pages[scroll.pageCount++] = bestPage;
 
-scroll.pages[scroll.pageCount++] = page;
-
-
+    start = nextStart;
 }
+
+ 
 
 
 }
@@ -679,6 +701,47 @@ uint16_t Display::measureTextWidth(const String& text)
 
     return w;
 }
+
+//==============================================================
+// Funkcja scorePage()
+//
+// Oblicza ocenę jakości podziału tekstu.
+//
+// Im lepiej wykorzystana jest szerokość strony,
+// tym wyższy wynik.
+//
+// W kolejnych etapach funkcja zostanie rozszerzona o:
+// - karę za pozostawienie bardzo krótkiej następnej strony,
+// - karę za rozpoczynanie strony od krótkich spójników,
+// - premię za bardziej naturalny podział tekstu.
+//
+// Parametry:
+//
+// page
+//      Kandydat na bieżącą stronę.
+//
+// remaining
+//      Pozostała część tekstu.
+//
+// areaWidth
+//      Maksymalna szerokość strony w pikselach.
+//
+// Zwraca:
+//
+// Wynik oceny. Im większa wartość, tym lepszy podział.
+//
+//==============================================================
+int Display::scorePage(const String& page,
+                       const String& remaining,
+                       int areaWidth)
+{
+    (void)remaining;
+
+    uint16_t width = measureTextWidth(page);
+
+    return (100 * width) / areaWidth;
+}
+
 
 //==============================================================
 // Rysowanie nazwy wykonawcy.
