@@ -13,6 +13,7 @@
 
 #include "Display.h"
 #include "StateComparer.h"
+#include "UTF8Print.h"
 
 //==============================================================
 // Utworzenie obiektu odpowiedzialnego za obsługę wyświetlacza.
@@ -80,7 +81,7 @@ void setup()
 //----------------------------------------------------------
 
 currentState.source      = "Spotify";
-currentState.artist      = "Dire Straits";
+currentState.artist      = "Zażółć gęślą jaźń";
 currentState.title       = "Money For Nothing - Dire Straits - Brothers In Arms - Remastered 2025";
 
 currentState.currentTime = "02:15";

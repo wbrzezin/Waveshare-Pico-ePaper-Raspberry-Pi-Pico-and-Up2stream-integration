@@ -18,7 +18,8 @@
 #include <SPI.h>
 #include <GxEPD2_BW.h>
 #include <GxEPD2_3C.h>
-#include <Fonts/FreeMonoBold9pt7b.h>
+#include "UTF8Print.h"
+#include "Theme.h"
 
 
 //==============================================================
@@ -56,17 +57,17 @@ constexpr int BAR_Y            = 85;
 
 constexpr int PLAY_X           = 10;
 constexpr int PLAY_Y           = 98;
-constexpr int TIME_Y           = 103;
+constexpr int TIME_Y           = 100;
 
 constexpr int CURRENT_TIME_X   = 22;
-constexpr int TOTAL_TIME_X     = 185;
+constexpr int TOTAL_TIME_X     = 205;
 
 //--------------------------------------------------------------
 // Głośność
 //--------------------------------------------------------------
 
 constexpr int VOLUME_Y         = 121;
-
+constexpr int VOLUME_X         = 100;
 //--------------------------------------------------------------
 // Marginesy ekranu
 //--------------------------------------------------------------
@@ -146,7 +147,7 @@ bool Display::begin()
 void Display::splash()
 {
     epd.setRotation(1);
-    epd.setFont(&FreeMonoBold9pt7b);
+    epd.setFont(&FONT_STATUS);
     epd.setTextColor(GxEPD_BLACK);
 
     epd.setFullWindow();
@@ -529,7 +530,7 @@ void Display::drawScrollingText(const char* text,
     // Narysuj tekst.
     //----------------------------------------------------------
     epd.setTextWrap(false);
-    epd.print(getVisibleText(text, scroll, width));
+    printPL(epd, getVisibleText(text, scroll, width).c_str());
 }
 
 
@@ -725,8 +726,9 @@ void Display::drawSourceName(const char* source)
 
 void Display::drawHeader(const char* source)
 {
+    epd.setFont(&FONT_STATUS);
     epd.setCursor(MARGIN_X, HEADER_Y);
-    epd.print(source);
+    printPL(epd, source);
 }
 
 //==============================================================
@@ -793,6 +795,7 @@ void Display::drawTrackInfo(const char* title,
 
 void Display::drawTitle(const char* title)
 {
+    epd.setFont(&FONT_TITLE);
     drawScrollingText(title,
                       titleScroll,
                       MARGIN_X,
@@ -872,6 +875,7 @@ int Display::scorePage(const String& page,
 
 void Display::drawArtist(const char* artist)
 {
+epd.setFont(&FONT_ARTIST);
 drawScrollingText(artist,
                   artistScroll,
                   MARGIN_X,
@@ -911,6 +915,8 @@ void Display::drawPlaybackBar(const char* currentTime,
     //----------------------------------------------------------
     // Aktualny czas odtwarzania.
     //----------------------------------------------------------
+
+    epd.setFont(&FONT_TIME);
 
     epd.setCursor(CURRENT_TIME_X, TIME_Y);
     epd.print(currentTime);
@@ -978,8 +984,9 @@ void Display::drawVolume(int volume)
     //----------------------------------------------------------
     // Ustawienie pozycji kursora.
     //----------------------------------------------------------
+    epd.setFont(&FONT_VOLUME);
 
-    epd.setCursor(0, VOLUME_Y);
+    epd.setCursor(VOLUME_X, VOLUME_Y);
 
     //----------------------------------------------------------
     // Wyświetlenie poziomu głośności.
