@@ -176,6 +176,21 @@ void refreshPartial(const PlayerState& player,
     //----------------------------------------------------------
     void drawHeaderArea(const char* source);
 
+        //----------------------------------------------------------
+    // Rysowanie nazwy źródła dźwięku.
+    //----------------------------------------------------------
+    void drawSourceName(const char* source);
+
+    //----------------------------------------------------------
+    // Rysowanie ikony źródła dźwięku.
+    //----------------------------------------------------------
+    void drawSourceIcon(const char* source);
+
+    //----------------------------------------------------------
+    // Rysowanie informacji o źródle dźwięku.
+    //----------------------------------------------------------
+    void drawSourceInfo(const char* source);
+
    //==============================================================
    // Funkcja drawHeaderSeparator()
    //

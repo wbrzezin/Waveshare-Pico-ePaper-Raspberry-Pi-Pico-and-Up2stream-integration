@@ -73,6 +73,7 @@ constexpr int VOLUME_Y         = 121;
 
 constexpr int MARGIN_X         = 10;
 
+
 //--------------------------------------------------------------
 // Parametry obszaru przewijanego tekstu
 //--------------------------------------------------------------
@@ -645,6 +646,78 @@ void Display::drawPlayerScreen(const PlayerState& player)
     drawVolume(player.volume);
 }
 
+//==============================================================
+// Funkcja drawSourceInfo()
+//
+// Rysuje informacje o aktualnym źródle dźwięku.
+//
+// Parametry:
+//
+// source
+//      Nazwa aktualnego źródła.
+//
+// Zwraca:
+//
+// nic
+//
+//==============================================================
+
+void Display::drawSourceInfo(const char* source)
+{
+    //----------------------------------------------------------
+    // Aktualnie wyświetlana jest jedynie nazwa źródła.
+    // W przyszłości zostanie tu dodana również ikona źródła.
+    //----------------------------------------------------------
+
+    drawSourceIcon(source);
+
+    drawSourceName(source);
+}
+
+//==============================================================
+// Funkcja drawSourceIcon()
+//
+// Rysuje ikonę odpowiadającą aktualnemu źródłu dźwięku.
+//
+// Parametry:
+//
+// source
+//      Nazwa źródła dźwięku.
+//
+// Zwraca:
+//
+// nic
+//
+//==============================================================
+
+void Display::drawSourceIcon(const char* source)
+{
+    //----------------------------------------------------------
+    // W tej wersji funkcja jest pusta.
+    // Ikony zostaną dodane w kolejnym etapie.
+    //----------------------------------------------------------
+}
+
+//==============================================================
+// Funkcja drawSourceName()
+//
+// Rysuje nazwę aktualnego źródła dźwięku.
+//
+// Parametry:
+//
+// source
+//      Nazwa źródła.
+//
+// Zwraca:
+//
+// nic
+//
+//==============================================================
+
+void Display::drawSourceName(const char* source)
+{
+    drawHeader(source);
+}
 
 //==============================================================
 // Rysowanie nagłówka z nazwą źródła dźwięku.
@@ -678,7 +751,7 @@ void Display::drawHeaderArea(const char* source)
     // Rysowanie nagłówka.
     //----------------------------------------------------------
 
-    drawHeader(source);
+    drawSourceInfo(source);
 
     //----------------------------------------------------------
     // Linia oddzielająca nagłówek od pozostałej części ekranu.
@@ -851,32 +924,35 @@ void Display::drawPlaybackBar(const char* currentTime,
     const int barWidth = epd.width() - 1;
 
     //----------------------------------------------------------
-    // Rysowanie linii paska.
-    //----------------------------------------------------------
+// Obliczenie szerokości odtworzonej części paska.
+// Parametr progress określa postęp odtwarzania
+// w procentach (0...100).
+//----------------------------------------------------------
 
-    epd.drawLine(barX,
-                 barY,
-                 barX + barWidth,
-                 barY,
+int playedWidth = (barWidth * progress) / 100;
+
+//----------------------------------------------------------
+// Obrys całego paska.
+//----------------------------------------------------------
+
+epd.drawRect(barX,
+             barY - 3,
+             barWidth,
+             4,
+             GxEPD_BLACK);
+
+//----------------------------------------------------------
+// Wypełnienie odtworzonej części.
+//----------------------------------------------------------
+
+if (playedWidth > 0)
+{
+    epd.fillRect(barX,
+                 barY -2,
+                 playedWidth,
+                 3,
                  GxEPD_BLACK);
-
-    //----------------------------------------------------------
-    // Obliczenie położenia znacznika.
-    // Parametr progress określa postęp odtwarzania
-    // w procentach (0...100).
-    //----------------------------------------------------------
-
-    int markerX = barX + (barWidth * progress) / 100;
-
-    //----------------------------------------------------------
-    // Rysowanie znacznika aktualnej pozycji.
-    //----------------------------------------------------------
-
-    epd.fillCircle(markerX,
-                   barY,
-                   3,
-                   GxEPD_BLACK);
-
+}
     //----------------------------------------------------------
     // Całkowity czas utworu.
     //----------------------------------------------------------
