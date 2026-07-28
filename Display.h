@@ -16,6 +16,25 @@
 #include "ChangeFlags.h"
 #include "ScrollState.h"
 
+//==============================================================
+// Obszary ekranu
+//==============================================================
+
+static const int HEADER_TOP      = 0;
+static const int HEADER_HEIGHT   = 24;
+
+static const int TITLE_TOP       = 26;
+static const int TITLE_HEIGHT    = 36;
+
+static const int PROGRESS_TOP    = 92;
+static const int PROGRESS_HEIGHT = 12;
+
+static const int TIME_TOP        = 103;
+static const int TIME_HEIGHT     = 16;
+
+static const int FOOTER_TOP      = 118;
+static const int FOOTER_HEIGHT   = 10;
+
 
 //--------------------------------------------------------------
 // Klasa Display
@@ -152,6 +171,29 @@ void refreshPartial(const PlayerState& player,
     //----------------------------------------------------------
     void drawSeparator(int y);
 
+    //----------------------------------------------------------
+    // Rysowanie całego obszaru nagłówka.
+    //----------------------------------------------------------
+    void drawHeaderArea(const char* source);
+
+   //==============================================================
+   // Funkcja drawHeaderSeparator()
+   //
+   // Rysuje linię oddzielającą nagłówek od pozostałej części
+   // ekranu.
+   //
+   // Parametry:
+   //
+   // brak
+   //
+   // Zwraca:
+   //
+   // nic
+   //
+   //==============================================================
+
+    void drawHeaderSeparator();
+
     uint16_t measureTextWidth(const String& text);
 
     int scorePage(const String& page,
@@ -214,6 +256,28 @@ void drawScrollingText(const char* text,
     // Rysowanie nazwy wykonawcy.
     //----------------------------------------------------------
     void drawArtist(const char* artist);
+
+   //==============================================================
+   // Funkcja drawTrackInfo()
+   //
+   // Rysuje informacje o aktualnie odtwarzanym utworze.
+   //
+   // Parametry:
+   //
+   // title
+   //      Tytuł utworu.
+   //
+   // artist
+   //      Wykonawca.
+   //
+   // Zwraca:
+   //
+   // nic
+   //
+   //==============================================================
+
+   void drawTrackInfo(const char* title,
+                   const char* artist);
 
     //----------------------------------------------------------
     // Rysowanie paska postępu odtwarzania.

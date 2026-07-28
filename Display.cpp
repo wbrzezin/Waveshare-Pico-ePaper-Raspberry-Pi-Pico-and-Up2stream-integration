@@ -618,24 +618,17 @@ void Display::update(const PlayerState& player,
 void Display::drawPlayerScreen(const PlayerState& player)
 {
     //----------------------------------------------------------
-    // Nagłówek z nazwą źródła.
+    // Nagłówek z nazwą źródła + separator (linia oddzielająca).
     //----------------------------------------------------------
 
-    drawHeader(player.source);
-
-    //----------------------------------------------------------
-    // Linia oddzielająca nagłówek.
-    //----------------------------------------------------------
-
-    drawSeparator(HEADER_LINE);
+        drawHeaderArea(player.source);
 
     //----------------------------------------------------------
     // Informacje o aktualnie odtwarzanym utworze.
     //----------------------------------------------------------
 
-    drawTitle(player.title);
-
-    drawArtist(player.artist);
+    drawTrackInfo(player.title,
+              player.artist);
 
     //----------------------------------------------------------
     // Pasek postępu odtwarzania.
@@ -663,6 +656,63 @@ void Display::drawHeader(const char* source)
     epd.print(source);
 }
 
+//==============================================================
+// Funkcja drawHeaderArea()
+//
+// Rysuje cały obszar nagłówka.
+//
+// Parametry:
+//
+// source
+//      Nazwa aktualnego źródła dźwięku.
+//
+// Zwraca:
+//
+// nic
+//
+//==============================================================
+
+void Display::drawHeaderArea(const char* source)
+{
+    //----------------------------------------------------------
+    // Rysowanie nagłówka.
+    //----------------------------------------------------------
+
+    drawHeader(source);
+
+    //----------------------------------------------------------
+    // Linia oddzielająca nagłówek od pozostałej części ekranu.
+    //----------------------------------------------------------
+
+    drawHeaderSeparator();
+}
+
+//==============================================================
+// Funkcja drawTrackInfo()
+//
+// Rysuje informacje o aktualnie odtwarzanym utworze.
+//
+// Parametry:
+//
+// title
+//      Tytuł utworu.
+//
+// artist
+//      Wykonawca.
+//
+// Zwraca:
+//
+// nic
+//
+//==============================================================
+
+void Display::drawTrackInfo(const char* title,
+                            const char* artist)
+{
+    drawTitle(title);
+
+    drawArtist(artist);
+}
 
 //==============================================================
 // Rysowanie tytułu aktualnie odtwarzanego utworu.
@@ -877,6 +927,27 @@ void Display::drawSeparator(int y)
                  epd.width() - 1,
                  y,
                  GxEPD_BLACK);
+}
+
+//==============================================================
+// Funkcja drawHeaderSeparator()
+//
+// Rysuje linię oddzielającą nagłówek od pozostałej części
+// ekranu.
+//
+// Parametry:
+//
+// brak
+//
+// Zwraca:
+//
+// nic
+//
+//==============================================================
+
+void Display::drawHeaderSeparator()
+{
+    drawSeparator(HEADER_LINE);
 }
 
 //==============================================================
