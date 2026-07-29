@@ -38,6 +38,14 @@
 constexpr int HEADER_Y         = 19;
 constexpr int HEADER_LINE      = 26;
 
+//----------------------------------------------------------
+// Szerokość obszaru przeznaczonego na ikonę źródła.
+//
+// 14 px - szerokość ikony
+// 4 px  - odstęp od tekstu
+//----------------------------------------------------------
+constexpr int SOURCE_ICON_AREA_WIDTH = 24;
+
 //--------------------------------------------------------------
 // Informacje o utworze
 //--------------------------------------------------------------
@@ -770,8 +778,8 @@ void Display::drawSourceIcon(const char* source)
         drawIcon(
         epd,
         sourceToIcon(source),
-        5,
-        7);
+        3,
+        3);
 
 }
 
@@ -803,7 +811,7 @@ IconId Display::sourceToIcon(const char* source)
     // właściwe mapowania.
     //----------------------------------------------------------
 
-    return IconId::Play;
+    return IconId::Spotify;
 }
 
 //==============================================================
@@ -834,7 +842,9 @@ void Display::drawSourceName(const char* source)
 void Display::drawHeader(const char* source)
 {
     epd.setFont(&FONT_STATUS);
-    epd.setCursor(MARGIN_X, HEADER_Y);
+    epd.setCursor(
+    MARGIN_X + SOURCE_ICON_AREA_WIDTH,
+    HEADER_Y);
     printPL(epd, source);
 }
 
