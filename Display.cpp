@@ -175,10 +175,13 @@ void Display::splash()
 //
 //==============================================================
 
-void Display::initScroll(ScrollState& scroll,
-                         const char* text,
-                         int areaWidth)
+void Display::initScroll(
+    ScrollState& scroll,
+    const char* text,
+    int areaWidth,
+    const GFXfont* font)
 {
+
     //----------------------------------------------------------
     // Zapamiętaj szerokość dostępnego obszaru.
     //----------------------------------------------------------
@@ -186,10 +189,14 @@ void Display::initScroll(ScrollState& scroll,
     scroll.areaWidth = areaWidth;
 
     //----------------------------------------------------------
-    // Oblicz szerokość napisu.
+    // Obliczenie szerokości całego napisu.
+    //
+    // Do pomiaru wykorzystywana jest ta sama czcionka,
+    // która zostanie użyta podczas rysowania.
     //----------------------------------------------------------
 
-   scroll.textWidth = measureTextWidth(text);
+scroll.textWidth =
+    measureTextWidth(text, font);
 
     //----------------------------------------------------------
     // Sprawdź, czy wymagane jest przewijanie.
@@ -287,7 +294,7 @@ while (start < source.length() &&
         // Sprawdź szerokość.
         //--------------------------------------------------
 
-        if (measureTextWidth(candidate) > areaWidth)
+        if (measureTextWidth(candidate, font) > areaWidth)
             break;
 
         bestPage = candidate;
@@ -325,7 +332,7 @@ while (start < source.length() &&
         {
             String candidate = source.substring(start, end);
 
-            if (measureTextWidth(candidate) > areaWidth)
+            if (measureTextWidth(candidate, font) > areaWidth)
             {
                 end--;
                 break;
@@ -510,11 +517,45 @@ void Display::drawScrollingText(const char* text,
     // Wyczyść obszar tekstu.
     //----------------------------------------------------------
 
-    epd.fillRect(x,
-                 y - 16,
-                 width,
-                 20,
-                 GxEPD_WHITE);
+   //----------------------------------------------------------
+// Obliczenie wysokości aktualnie ustawionej czcionki.
+//
+// Każda sekcja interfejsu (tytuł, wykonawca, nagłówek)
+// może korzystać z innej czcionki. Z tego powodu wysokość
+// czyszczonego obszaru nie powinna być wpisana "na sztywno",
+// lecz wyznaczana na podstawie aktualnie ustawionej czcionki.
+//----------------------------------------------------------
+
+int16_t x1;
+int16_t y1;
+
+uint16_t textWidth;
+uint16_t textHeight;
+
+// Pomiar przykładowego znaku.
+// Litera "M" posiada zwykle największą wysokość.
+epd.getTextBounds(
+    "M",
+    0,
+    0,
+    &x1,
+    &y1,
+    &textWidth,
+    &textHeight);
+
+//----------------------------------------------------------
+// Wyczyść cały obszar zajmowany przez tekst.
+//
+// Dodawany jest niewielki margines (2 px), aby usunąć
+// ewentualne pozostałości po poprzednim rysowaniu.
+//----------------------------------------------------------
+
+epd.fillRect(
+    x,
+    y - textHeight,
+    width,
+    textHeight + 2,
+    GxEPD_WHITE);
 
     //----------------------------------------------------------
     // Ustaw pozycję kursora.
@@ -560,9 +601,19 @@ void Display::update(const PlayerState& player,
 
    if ((changes & ChangeFlags::Title) != ChangeFlags::None)
    {
-    initScroll(titleScroll,
-               player.title,
-               TEXT_WIDTH);
+    
+    //----------------------------------------------------------
+    // Inicjalizacja przewijania nazwy wykonawcy.
+    //
+    // Pomiar wykonywany jest z wykorzystaniem czcionki
+    // przeznaczonej dla wykonawcy.
+    //----------------------------------------------------------
+
+    initScroll(
+        titleScroll,
+        player.title,
+        TEXT_WIDTH,
+        &FONT_TITLE);
 
               
    }
@@ -574,9 +625,18 @@ void Display::update(const PlayerState& player,
 
    if ((changes & ChangeFlags::Artist) != ChangeFlags::None)
    {
-    initScroll(artistScroll,
-               player.artist,
-               TEXT_WIDTH);
+    //----------------------------------------------------------
+    // Inicjalizacja przewijania nazwy wykonawcy.
+    //
+    // Pomiar wykonywany jest z wykorzystaniem czcionki
+    // przeznaczonej dla wykonawcy.
+    //----------------------------------------------------------
+
+    initScroll(
+        artistScroll,
+        player.artist,
+        TEXT_WIDTH,
+        &FONT_ARTIST);
    }
 
    //----------------------------------------------------------
@@ -803,27 +863,43 @@ void Display::drawTitle(const char* title)
                       230);
 }
 
-//==============================================================
-// Obliczenie szerokości tekstu
+//--------------------------------------------------------------
+// Obliczenie szerokości tekstu.
 //
-// Funkcja zwraca szerokość napisu w pikselach dla aktualnie
-// ustawionej czcionki.
-//==============================================================
-uint16_t Display::measureTextWidth(const String& text)
+// Funkcja chwilowo ustawia przekazaną czcionkę,
+// oblicza szerokość napisu, a następnie zwraca wynik.
+//
+// Dzięki temu szerokość zawsze odpowiada czcionce,
+// która będzie użyta podczas rysowania.
+//--------------------------------------------------------------
+uint16_t Display::measureTextWidth(
+    const String& text,
+    const GFXfont* font)
 {
+    //----------------------------------------------------------
+    // Ustawienie czcionki używanej do pomiaru.
+    //----------------------------------------------------------
+
+    epd.setFont(font);
+
+    //----------------------------------------------------------
+    // Wyznaczenie prostokąta ograniczającego napis.
+    //----------------------------------------------------------
+
     int16_t x1;
     int16_t y1;
 
     uint16_t w;
     uint16_t h;
 
-    epd.getTextBounds(text,
-                      0,
-                      0,
-                      &x1,
-                      &y1,
-                      &w,
-                      &h);
+    epd.getTextBounds(
+        text,
+        0,
+        0,
+        &x1,
+        &y1,
+        &w,
+        &h);
 
     return w;
 }
@@ -863,7 +939,7 @@ int Display::scorePage(const String& page,
 {
     (void)remaining;
 
-    uint16_t width = measureTextWidth(page);
+    uint16_t width = measureTextWidth(page, &FONT_TITLE);
 
     return (100 * width) / areaWidth;
 }

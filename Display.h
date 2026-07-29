@@ -12,6 +12,11 @@
 
 #include <Arduino.h>
 
+//--------------------------------------------------------------
+// Definicja struktury GFXfont wykorzystywanej przez Adafruit_GFX
+//--------------------------------------------------------------
+#include <Adafruit_GFX.h>
+
 #include "PlayerState.h"
 #include "ChangeFlags.h"
 #include "ScrollState.h"
@@ -209,9 +214,18 @@ void refreshPartial(const PlayerState& player,
 
     void drawHeaderSeparator();
 
-    uint16_t measureTextWidth(const String& text);
+    //--------------------------------------------------------------
+    // Obliczenie szerokości tekstu.
+    //
+    // Funkcja zwraca szerokość napisu dla wskazanej czcionki.
+    // Dzięki temu wynik nie zależy od aktualnie ustawionej
+    // czcionki wyświetlacza.
+    //--------------------------------------------------------------
+    uint16_t measureTextWidth(
+        const String& text,
+        const GFXfont* font);
 
-    int scorePage(const String& page,
+        int scorePage(const String& page,
               const String& remaining,
               int areaWidth);
 
@@ -226,16 +240,29 @@ void refreshPartial(const PlayerState& player,
     int maxWidth);
 
 
-//==============================================================
-// Funkcja initScroll()
+//--------------------------------------------------------------
+// Inicjalizacja przewijanego tekstu.
 //
-// Oblicza parametry przewijania dla wskazanego tekstu.
+// Parametry:
 //
-//==============================================================
-
-void initScroll(ScrollState& scroll,
-                const char* text,
-                int areaWidth);
+// scroll
+//      Struktura przechowująca stan przewijania.
+//
+// text
+//      Tekst do wyświetlenia.
+//
+// areaWidth
+//      Dostępna szerokość obszaru w pikselach.
+//
+// font
+//      Czcionka wykorzystywana zarówno do pomiaru szerokości,
+//      jak i późniejszego wyświetlenia tekstu.
+//--------------------------------------------------------------
+void initScroll(
+    ScrollState& scroll,
+    const char* text,
+    int areaWidth,
+    const GFXfont* font);
 
 //==============================================================
 // Funkcja updateScroll()
