@@ -20,6 +20,7 @@
 #include <GxEPD2_3C.h>
 #include "UTF8Print.h"
 #include "Theme.h"
+#include "Icons.h"
 
 
 //==============================================================
@@ -159,7 +160,7 @@ void Display::splash()
         epd.fillScreen(GxEPD_WHITE);
 
         epd.setCursor(10, 40);
-        epd.println("UP2STREAM");
+        epd.println("MEANDRY TECHNIKI");
 
         epd.setCursor(10, 70);
         epd.println("Display OK");
@@ -757,6 +758,52 @@ void Display::drawSourceIcon(const char* source)
     // W tej wersji funkcja jest pusta.
     // Ikony zostaną dodane w kolejnym etapie.
     //----------------------------------------------------------
+
+        //----------------------------------------------------------
+        // Test modułu ikon.
+        //
+        // Na obecnym etapie zawsze rysowana jest ikona PLAY.
+        // W kolejnym kroku zostanie zastąpiona wyborem ikony
+        // zależnym od nazwy źródła.
+        //----------------------------------------------------------
+
+        drawIcon(
+        epd,
+        sourceToIcon(source),
+        5,
+        7);
+
+}
+
+//==============================================================
+// Funkcja sourceToIcon()
+//
+// Zamienia nazwę źródła dźwięku na identyfikator ikony.
+//
+// Parametry:
+//
+// source
+//      Nazwa źródła zwrócona przez UP2Stream.
+//
+// Zwraca:
+//
+// IconId
+//      Identyfikator odpowiadającej ikony.
+//
+//==============================================================
+
+IconId Display::sourceToIcon(const char* source)
+{
+    if (source == nullptr)
+        return IconId::None;
+
+    //----------------------------------------------------------
+    // Na obecnym etapie wszystkie źródła zwracają tę samą
+    // ikonę testową. W kolejnych etapach zostaną dodane
+    // właściwe mapowania.
+    //----------------------------------------------------------
+
+    return IconId::Play;
 }
 
 //==============================================================

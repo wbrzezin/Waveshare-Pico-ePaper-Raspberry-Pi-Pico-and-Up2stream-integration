@@ -20,6 +20,7 @@
 #include "PlayerState.h"
 #include "ChangeFlags.h"
 #include "ScrollState.h"
+#include "Icons.h"
 
 //==============================================================
 // Obszary ekranu
@@ -191,6 +192,11 @@ void refreshPartial(const PlayerState& player,
     //----------------------------------------------------------
     void drawSourceIcon(const char* source);
 
+    //----------------------------------------------------------
+    // Zamiana nazwy źródła dźwięku na identyfikator ikony.
+    //----------------------------------------------------------
+    IconId sourceToIcon(const char* source);
+    
     //----------------------------------------------------------
     // Rysowanie informacji o źródle dźwięku.
     //----------------------------------------------------------
