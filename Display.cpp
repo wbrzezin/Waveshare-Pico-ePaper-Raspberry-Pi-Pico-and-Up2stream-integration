@@ -959,27 +959,22 @@ void Display::drawPlaybackBar(const char* currentTime,
                               const char* totalTime,
                               int progress)
 {
-    //----------------------------------------------------------
-    // Ikona Play.
-    //----------------------------------------------------------
-
-    const int playX = PLAY_X;
-    const int playY = PLAY_Y;
-
-    epd.fillTriangle(
-        playX,     playY - 4,
-        playX,     playY + 4,
-        playX + 8, playY,
-        GxEPD_BLACK);
 
     //----------------------------------------------------------
     // Aktualny czas odtwarzania.
+    //
+    // Ikona stanu odtwarzania jest wyświetlana jako pierwszy
+    // znak ciągu tekstowego. Dzięki temu można ocenić wygląd
+    // glifu wygenerowanego w czcionce oraz jego wyrównanie
+    // względem cyfr czasu.
     //----------------------------------------------------------
+epd.setFont(&FONT_TIME);
 
-    epd.setFont(&FONT_TIME);
+epd.setCursor(CURRENT_TIME_X, TIME_Y);
 
-    epd.setCursor(CURRENT_TIME_X, TIME_Y);
-    epd.print(currentTime);
+printPL(epd, "\x92");
+epd.print(" ");
+printPL(epd, currentTime);
 
     //----------------------------------------------------------
     // Parametry paska postępu.

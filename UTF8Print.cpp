@@ -63,6 +63,20 @@ void printPL(Print &out, const char *text)
         uint8_t c = (uint8_t)*text++;
         uint16_t unicode = c;
 
+                //------------------------------------------------------
+        // Wewnętrzne kody znaków specjalnych.
+        //
+        // Zakres 0x80...0x96 wykorzystywany jest przez
+        // wygenerowaną czcionkę do przechowywania polskich
+        // znaków oraz ikon interfejsu użytkownika.
+        //------------------------------------------------------
+
+        if (c >= 0x80 && c <= 0x96)
+        {
+            out.write(c);
+            continue;
+        }
+
         /* Znaki ASCII. */
         if (c < 0x80)
         {
