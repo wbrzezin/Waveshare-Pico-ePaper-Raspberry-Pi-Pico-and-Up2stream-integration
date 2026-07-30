@@ -12,37 +12,20 @@
 #include <Adafruit_GFX.h>
 #include "IconBitmaps.h"
 
-//--------------------------------------------------------------
-// Identyfikatory dostępnych ikon.
-//--------------------------------------------------------------
+//==============================================================
+// Identyfikatory ikon wykorzystywanych przez interfejs.
+//
+// W aktualnej wersji programu stosowane są wyłącznie
+// ikony sterowania odtwarzaniem.
+//==============================================================
+
 enum class IconId
 {
     None,
 
-    Spotify,
-    Bluetooth,
-    AirPlay,
-    DLNA,
-    NAS,
-    USB,
-    Radio,
-
     Play,
     Pause,
-    Stop,
-
-    Next,
-    Previous,
-
-    Volume,
-    Mute,
-
-    Ethernet,
-
-    WiFi0,
-    WiFi1,
-    WiFi2,
-    WiFi3
+    Stop
 };
 
 //--------------------------------------------------------------

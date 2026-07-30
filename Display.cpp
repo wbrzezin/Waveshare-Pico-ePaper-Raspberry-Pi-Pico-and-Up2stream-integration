@@ -747,50 +747,14 @@ void Display::drawSourceInfo(const char* source)
 }
 
 
-
-//==============================================================
-// Funkcja sourceToIcon()
-//
-// Zamienia nazwę źródła dźwięku na identyfikator ikony.
-//
-// Parametry:
-//
-// source
-//      Nazwa źródła zwrócona przez UP2Stream.
-//
-// Zwraca:
-//
-// IconId
-//      Identyfikator odpowiadającej ikony.
-//
-//==============================================================
-
-IconId Display::sourceToIcon(const char* source)
-{
-    if (source == nullptr)
-        return IconId::None;
-
-    //----------------------------------------------------------
-    // Na obecnym etapie wszystkie źródła zwracają tę samą
-    // ikonę testową. W kolejnych etapach zostaną dodane
-    // właściwe mapowania.
-    //----------------------------------------------------------
-
-    return IconId::Spotify;
-}
-
 //==============================================================
 // Funkcja drawSourceName()
 //
 // Rysuje nazwę aktualnego źródła dźwięku.
-//
 // Parametry:
-//
 // source
 //      Nazwa źródła.
-//
 // Zwraca:
-//
 // nic
 //
 //==============================================================

@@ -27,16 +27,7 @@ bool drawIcon(
     switch (id)
     {
         //------------------------------------------------------
-        // SPOTIFY
-        //------------------------------------------------------
-
-        case IconId::Spotify:
-            bitmap = ICON_SPOTIFY_24X24;
-            width  = 24;
-            height = 24;
-            break;
-        //------------------------------------------------------
-        // PLAY
+        // PLAY / PAUSE / STOP 
         //------------------------------------------------------
         case IconId::Play:
             bitmap = ICON_PLAY_8;
@@ -52,18 +43,6 @@ bool drawIcon(
 
         case IconId::Stop:
             bitmap = ICON_STOP_8;
-            width = 8;
-            height = 8;
-            break;
-
-        case IconId::Next:
-            bitmap = ICON_NEXT_8;
-            width = 8;
-            height = 8;
-            break;
-
-        case IconId::Previous:
-            bitmap = ICON_PREVIOUS_8;
             width = 8;
             height = 8;
             break;
