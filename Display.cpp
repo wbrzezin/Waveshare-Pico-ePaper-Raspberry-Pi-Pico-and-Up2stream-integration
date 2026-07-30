@@ -38,14 +38,6 @@
 constexpr int HEADER_Y         = 19;
 constexpr int HEADER_LINE      = 26;
 
-//----------------------------------------------------------
-// Szerokość obszaru przeznaczonego na ikonę źródła.
-//
-// 14 px - szerokość ikony
-// 4 px  - odstęp od tekstu
-//----------------------------------------------------------
-constexpr int SOURCE_ICON_AREA_WIDTH = 24;
-
 //--------------------------------------------------------------
 // Informacje o utworze
 //--------------------------------------------------------------
