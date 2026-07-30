@@ -188,11 +188,6 @@ void refreshPartial(const PlayerState& player,
     void drawSourceName(const char* source);
 
     //----------------------------------------------------------
-    // Rysowanie ikony źródła dźwięku.
-    //----------------------------------------------------------
-    void drawSourceIcon(const char* source);
-
-    //----------------------------------------------------------
     // Zamiana nazwy źródła dźwięku na identyfikator ikony.
     //----------------------------------------------------------
     IconId sourceToIcon(const char* source);

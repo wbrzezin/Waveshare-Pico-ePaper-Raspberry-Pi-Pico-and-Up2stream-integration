@@ -733,55 +733,20 @@ void Display::drawPlayerScreen(const PlayerState& player)
 //==============================================================
 
 void Display::drawSourceInfo(const char* source)
+
 {
     //----------------------------------------------------------
-    // Aktualnie wyświetlana jest jedynie nazwa źródła.
-    // W przyszłości zostanie tu dodana również ikona źródła.
+    // Wyświetlenie nazwy aktualnego źródła.
+    //
+    // Zrezygnowano z ikon źródeł (Spotify, Bluetooth, AirPlay,
+    // NAS, USB itd.), ponieważ na wyświetlaczu e-paper
+    // nie zapewniają wystarczającej czytelności.
     //----------------------------------------------------------
-
-    drawSourceIcon(source);
 
     drawSourceName(source);
 }
 
-//==============================================================
-// Funkcja drawSourceIcon()
-//
-// Rysuje ikonę odpowiadającą aktualnemu źródłu dźwięku.
-//
-// Parametry:
-//
-// source
-//      Nazwa źródła dźwięku.
-//
-// Zwraca:
-//
-// nic
-//
-//==============================================================
 
-void Display::drawSourceIcon(const char* source)
-{
-    //----------------------------------------------------------
-    // W tej wersji funkcja jest pusta.
-    // Ikony zostaną dodane w kolejnym etapie.
-    //----------------------------------------------------------
-
-        //----------------------------------------------------------
-        // Test modułu ikon.
-        //
-        // Na obecnym etapie zawsze rysowana jest ikona PLAY.
-        // W kolejnym kroku zostanie zastąpiona wyborem ikony
-        // zależnym od nazwy źródła.
-        //----------------------------------------------------------
-
-        drawIcon(
-        epd,
-        sourceToIcon(source),
-        3,
-        3);
-
-}
 
 //==============================================================
 // Funkcja sourceToIcon()
@@ -842,8 +807,14 @@ void Display::drawSourceName(const char* source)
 void Display::drawHeader(const char* source)
 {
     epd.setFont(&FONT_STATUS);
+//----------------------------------------------------------
+// Nazwa źródła rozpoczyna się od lewego marginesu.
+//
+// Zrezygnowano z ikon źródeł, dlatego nie jest już
+// rezerwowane miejsce na ich wyświetlenie.
+//----------------------------------------------------------
     epd.setCursor(
-    MARGIN_X + SOURCE_ICON_AREA_WIDTH,
+    MARGIN_X,
     HEADER_Y);
     printPL(epd, source);
 }
