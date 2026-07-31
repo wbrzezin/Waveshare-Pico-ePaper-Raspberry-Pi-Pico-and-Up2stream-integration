@@ -21,6 +21,7 @@
 #include "ChangeFlags.h"
 #include "ScrollState.h"
 #include "Icons.h"
+#include "ScreenManager.h"
 
 //--------------------------------------------------------------
 // Tryb pracy interfejsu użytkownika.
@@ -258,6 +259,34 @@ void refreshPartial(const PlayerState& player,
         const String& text,
         const GFXfont* font);
 
+        //--------------------------------------------------------------
+        // Obliczenie współrzędnej X zapewniającej wyśrodkowanie napisu.
+        //
+        // Parametry:
+        //
+        // text
+        //      Tekst do wyświetlenia.
+        //
+        // font
+        //      Czcionka użyta do obliczenia szerokości.
+        //
+        // areaX
+        //      Lewa krawędź obszaru.
+        //
+        // areaWidth
+        //      Szerokość obszaru.
+        //
+        // Zwraca:
+        //
+        // Współrzędną X, od której należy rozpocząć rysowanie tekstu.
+        //--------------------------------------------------------------
+
+        int calculateCenteredX(
+            const String& text,
+            const GFXfont* font,
+            int areaX,
+            int areaWidth);
+
         int scorePage(const String& page,
               const String& remaining,
               int areaWidth);
@@ -408,14 +437,7 @@ ScrollState titleScroll;
 
 ScrollState artistScroll;
 
-//--------------------------------------------------------------
-// Aktualny tryb wyświetlania.
-//
-// Domyślnie po uruchomieniu urządzenia wyświetlany jest
-// ekran odtwarzacza.
-//--------------------------------------------------------------
 
-DisplayMode displayMode = DisplayMode::Player;
 
 };
 

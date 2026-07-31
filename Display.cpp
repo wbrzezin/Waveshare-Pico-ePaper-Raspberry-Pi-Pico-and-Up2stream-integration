@@ -75,12 +75,21 @@ constexpr int VOLUME_X         = 100;
 //--------------------------------------------------------------
 
 // Data
-constexpr int IDLE_DATE_X      = 175;
+constexpr int IDLE_DATE_X      = 160;
 constexpr int IDLE_DATE_Y      = 14;
 
 // Zegar
 constexpr int IDLE_CLOCK_X     = 78;
 constexpr int IDLE_CLOCK_Y     = 66;
+
+//--------------------------------------------------------------
+// Wyśrodkowanie zegara.
+//
+// Szerokość napisu będzie wyznaczana dynamicznie.
+//--------------------------------------------------------------
+
+constexpr int IDLE_CLOCK_AREA_X = 0;
+constexpr int IDLE_CLOCK_AREA_W = 250;
 
 // Linia oddzielająca
 constexpr int IDLE_LINE_Y      = 98;
@@ -496,7 +505,7 @@ void Display::refreshPartial(const PlayerState& player,
 
     do
 {
-    drawPlayerScreen(player);
+     drawIdleScreen();
 }
 while (epd.nextPage());
 
@@ -780,12 +789,27 @@ void Display::drawIdleScreen()
     // Godzina.
     //----------------------------------------------------------
 
-    epd.setFont(&NotoSans_Regular14pt8b);
+//----------------------------------------------------------
+// Wyświetlenie dużego zegara.
+//
+// Pozycja pozioma wyznaczana jest automatycznie,
+// dzięki czemu każda godzina będzie idealnie
+// wyśrodkowana.
+//----------------------------------------------------------
 
-    epd.setCursor(IDLE_CLOCK_X,
-                  IDLE_CLOCK_Y);
+epd.setFont(&FONT_CLOCK);
 
-    epd.print("14:37");
+String clockText = "14:37";
+
+epd.setCursor(
+    calculateCenteredX(
+        clockText,
+        &FONT_CLOCK,
+        IDLE_CLOCK_AREA_X,
+        IDLE_CLOCK_AREA_W),
+    IDLE_CLOCK_Y);
+
+epd.print(clockText);   
 
     //----------------------------------------------------------
     // Linia oddzielająca podpis.
@@ -804,12 +828,9 @@ void Display::drawIdleScreen()
 
     epd.setFont(&FONT_STATUS);
 
-    epd.drawLine(
-    0,
-    IDLE_LINE_Y,
-    epd.width() - 1,
-    IDLE_LINE_Y,
-    GxEPD_BLACK);
+    epd.setCursor(
+    IDLE_FOOTER_X,
+    IDLE_FOOTER_Y);
 
     epd.print("MEANDRY TECHNIKI");
 }
@@ -993,6 +1014,33 @@ uint16_t Display::measureTextWidth(
         &h);
 
     return w;
+}
+
+//==============================================================
+// Funkcja calculateCenteredX()
+//
+// Oblicza współrzędną X umożliwiającą wyśrodkowanie napisu
+// w zadanym obszarze.
+//==============================================================
+
+int Display::calculateCenteredX(
+    const String& text,
+    const GFXfont* font,
+    int areaX,
+    int areaWidth)
+{
+    //----------------------------------------------------------
+    // Obliczenie szerokości napisu.
+    //----------------------------------------------------------
+
+    uint16_t width =
+        measureTextWidth(text, font);
+
+    //----------------------------------------------------------
+    // Wyznaczenie współrzędnej X.
+    //----------------------------------------------------------
+
+    return areaX + (areaWidth - width) / 2;
 }
 
 //==============================================================
