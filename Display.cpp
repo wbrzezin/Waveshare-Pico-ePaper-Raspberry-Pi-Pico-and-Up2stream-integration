@@ -69,6 +69,26 @@ constexpr int TOTAL_TIME_X     = 205;
 
 constexpr int VOLUME_Y         = 121;
 constexpr int VOLUME_X         = 100;
+
+//--------------------------------------------------------------
+// Ekran bezczynności
+//--------------------------------------------------------------
+
+// Data
+constexpr int IDLE_DATE_X      = 175;
+constexpr int IDLE_DATE_Y      = 14;
+
+// Zegar
+constexpr int IDLE_CLOCK_X     = 78;
+constexpr int IDLE_CLOCK_Y     = 66;
+
+// Linia oddzielająca
+constexpr int IDLE_LINE_Y      = 98;
+
+// Podpis
+constexpr int IDLE_FOOTER_X    = 10;
+constexpr int IDLE_FOOTER_Y    = 118;
+
 //--------------------------------------------------------------
 // Marginesy ekranu
 //--------------------------------------------------------------
@@ -433,10 +453,13 @@ void Display::refreshFull(const PlayerState& player)
 
     do
     {
+        
         drawPlayerScreen(player);
     }
     while (epd.nextPage());
 }
+
+
 
 //==============================================================
 // Częściowe odświeżenie ekranu
@@ -472,10 +495,10 @@ void Display::refreshPartial(const PlayerState& player,
     epd.firstPage();
 
     do
-    {
-        drawPlayerScreen(player);
-    }
-    while (epd.nextPage());
+{
+    drawPlayerScreen(player);
+}
+while (epd.nextPage());
 
 }
 
@@ -501,6 +524,23 @@ void Display::showPlayer(const PlayerState& player)
     refreshFull(player);
 }
 
+//==============================================================
+// Funkcja showIdle()
+//
+// Wyświetla ekran bezczynności.
+//
+//==============================================================
+
+void Display::showIdle()
+{
+    epd.firstPage();
+
+    do
+    {
+        drawIdleScreen();
+    }
+    while (epd.nextPage());
+}
 
 //==============================================================
 // Funkcja drawScrollingText()
@@ -707,6 +747,73 @@ void Display::drawPlayerScreen(const PlayerState& player)
 
     drawVolume(player.volume);
 }
+
+//==============================================================
+// Funkcja drawIdleScreen()
+//
+// Rysuje ekran bezczynności.
+//
+// Na obecnym etapie wyświetlane są przykładowa data,
+// przykładowa godzina oraz podpis urządzenia.
+//==============================================================
+
+void Display::drawIdleScreen()
+{
+    //----------------------------------------------------------
+    // Wyczyść cały ekran.
+    //----------------------------------------------------------
+
+    epd.fillScreen(GxEPD_WHITE);
+
+    //----------------------------------------------------------
+    // Data.
+    //----------------------------------------------------------
+
+    epd.setFont(&FONT_STATUS);
+
+    epd.setCursor(IDLE_DATE_X,
+                  IDLE_DATE_Y);
+
+    epd.print("31.07.2026");
+
+    //----------------------------------------------------------
+    // Godzina.
+    //----------------------------------------------------------
+
+    epd.setFont(&NotoSans_Regular14pt8b);
+
+    epd.setCursor(IDLE_CLOCK_X,
+                  IDLE_CLOCK_Y);
+
+    epd.print("14:37");
+
+    //----------------------------------------------------------
+    // Linia oddzielająca podpis.
+    //----------------------------------------------------------
+
+    epd.drawLine(
+    0,
+    IDLE_LINE_Y,
+    epd.width() - 1,
+    IDLE_LINE_Y,
+    GxEPD_BLACK);
+
+    //----------------------------------------------------------
+    // Podpis urządzenia.
+    //----------------------------------------------------------
+
+    epd.setFont(&FONT_STATUS);
+
+    epd.drawLine(
+    0,
+    IDLE_LINE_Y,
+    epd.width() - 1,
+    IDLE_LINE_Y,
+    GxEPD_BLACK);
+
+    epd.print("MEANDRY TECHNIKI");
+}
+
 
 //==============================================================
 // Funkcja drawSourceInfo()

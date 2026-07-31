@@ -13,7 +13,7 @@
 #include <Arduino.h>
 
 //--------------------------------------------------------------
-// Definicja struktury GFXfont wykorzystywanej przez Adafruit_GFX
+// Definicja struktury GFXfont wykorzystywanej przez Adafruit_GFXbezczynności
 //--------------------------------------------------------------
 #include <Adafruit_GFX.h>
 
@@ -21,6 +21,22 @@
 #include "ChangeFlags.h"
 #include "ScrollState.h"
 #include "Icons.h"
+
+//--------------------------------------------------------------
+// Tryb pracy interfejsu użytkownika.
+//
+// Player
+//      Wyświetlany jest ekran odtwarzacza.
+//
+// Idle
+//      Wyświetlany jest ekran bezczynności.
+//--------------------------------------------------------------
+
+enum class DisplayMode
+{
+    Player,
+    Idle
+};
 
 //==============================================================
 // Obszary ekranu
@@ -92,6 +108,16 @@ public:
    //----------------------------------------------------------
 
 void showPlayer(const PlayerState& player);
+
+//--------------------------------------------------------------
+// Wyświetlenie ekranu bezczynności.
+//
+// Funkcja wykonuje pełne odświeżenie wyświetlacza i rysuje
+// ekran bezczynności.
+//
+//--------------------------------------------------------------
+
+void showIdle();
 
     //----------------------------------------------------------
     // Aktualizacja zawartości wyświetlacza.
@@ -166,6 +192,16 @@ void refreshPartial(const PlayerState& player,
     //
     //==========================================================
     void drawPlayerScreen(const PlayerState& player);
+
+    //--------------------------------------------------------------
+    // Rysowanie ekranu bezczynności.
+    //
+    // Ekran wyświetlany po dłuższym okresie braku aktywności.
+    // Docelowo będzie zawierał aktualny czas, datę oraz
+    // konfigurowalny napis.
+    //--------------------------------------------------------------
+
+     void drawIdleScreen();
 
     //----------------------------------------------------------
     // Rysowanie nagłówka z nazwą źródła dźwięku.
@@ -372,6 +408,17 @@ ScrollState titleScroll;
 
 ScrollState artistScroll;
 
+//--------------------------------------------------------------
+// Aktualny tryb wyświetlania.
+//
+// Domyślnie po uruchomieniu urządzenia wyświetlany jest
+// ekran odtwarzacza.
+//--------------------------------------------------------------
+
+DisplayMode displayMode = DisplayMode::Player;
+
 };
+
+
 
 #endif
