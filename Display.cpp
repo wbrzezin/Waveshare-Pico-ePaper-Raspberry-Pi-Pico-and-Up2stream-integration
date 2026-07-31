@@ -60,7 +60,7 @@ constexpr int PLAY_X           = 10;
 constexpr int PLAY_Y           = 98;
 constexpr int TIME_Y           = 100;
 
-constexpr int CURRENT_TIME_X   = 22;
+constexpr int CURRENT_TIME_X   = 7;
 constexpr int TOTAL_TIME_X     = 205;
 
 //--------------------------------------------------------------
