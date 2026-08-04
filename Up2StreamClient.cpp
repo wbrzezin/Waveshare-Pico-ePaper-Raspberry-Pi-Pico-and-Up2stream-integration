@@ -86,7 +86,7 @@ void Up2StreamClient::begin(HardwareSerial& serial)
 // w następnym kroku.
 //==============================================================
 
-void Up2StreamClient::update(PlayerState& player)
+ChangeFlags Up2StreamClient::update(PlayerState& player)
 {
     (void)player;
 
@@ -95,10 +95,10 @@ void Up2StreamClient::update(PlayerState& player)
     // nie wykonujemy żadnych działań.
     //----------------------------------------------------------
 
-   if (uart == nullptr)
-   {
-    return;
-   }
+    if (uart == nullptr)
+    {
+        return ChangeFlags::None;
+    }
 
     //----------------------------------------------------------
     // Odczytaj wszystkie dostępne znaki.
@@ -153,19 +153,13 @@ ChangeFlags changes =
 // zwróć ją do programu głównego.
 //--------------------------------------------------
 
-//------------------------------------------------------
-// Komunikat został przetworzzony.
-//
-// W przyszłości wykrywanie zmian wykona
-// klasa StateComparer.
-//------------------------------------------------------
+if (changes != ChangeFlags::None)
+{
+    rxPosition = 0;
+    rxBuffer[0] = '\0';
 
-(void)changes;
-
-rxPosition = 0;
-rxBuffer[0] = '\0';
-
-
+    return changes;
+}
             //--------------------------------------------------
             // Wyczyść bufor.
             //--------------------------------------------------
@@ -176,6 +170,7 @@ rxBuffer[0] = '\0';
         }
     }
 
+    return ChangeFlags::None;
 }
 
 //==============================================================
