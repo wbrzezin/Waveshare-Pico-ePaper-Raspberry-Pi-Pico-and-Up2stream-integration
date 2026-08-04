@@ -72,6 +72,43 @@ private:
 
     HardwareSerial* uart;
 
+        //----------------------------------------------------------
+    // Bufor odbierający pojedynczy komunikat UART.
+    //
+    // Przykład zawartości:
+    //
+    // PLA:1;
+    // VOL:35;
+    // TIT:Hurt;
+    //----------------------------------------------------------
+
+    static const uint16_t RX_BUFFER_SIZE = 256;
+
+    char rxBuffer[RX_BUFFER_SIZE];
+
+
+    //----------------------------------------------------------
+    // Aktualna pozycja zapisu w buforze.
+    //----------------------------------------------------------
+
+    uint16_t rxPosition;
+
+        //----------------------------------------------------------
+    // Analiza pojedynczego komunikatu odebranego z UART.
+    //
+    // Parametry:
+    //   message - kompletny komunikat zakończony ';'
+    //   player  - aktualny stan odtwarzacza
+    //
+    // Zwraca:
+    //   ChangeFlags informujące, które elementy interfejsu
+    //   wymagają odświeżenia.
+    //----------------------------------------------------------
+
+    ChangeFlags processMessage(
+        const char* message,
+        PlayerState& player);
+
 };
 
 #endif
