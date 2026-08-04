@@ -44,29 +44,33 @@ ChangeFlags StateComparer::compare(const PlayerState& previous,
 
     ChangeFlags changes = ChangeFlags::None;
 
-    //----------------------------------------------------------
-    // Źródło dźwięku.
-    //----------------------------------------------------------
 
-    if (strcmp(previous.source, current.source) != 0)
+//----------------------------------------------------------
+// Zmiana źródła odtwarzania.
+//
+// Dla klasy String możemy bezpośrednio użyć operatora
+// porównania. Nie jest już potrzebna funkcja strcmp().
+//----------------------------------------------------------
+
+if (previous.source != current.source)
     {
         changes |= ChangeFlags::Source;
     }
 
-    //----------------------------------------------------------
-    // Wykonawca.
-    //----------------------------------------------------------
+   //----------------------------------------------------------
+   // Zmiana wykonawcy.
+   //----------------------------------------------------------
 
-    if (strcmp(previous.artist, current.artist) != 0)
+   if (previous.artist != current.artist)
     {
         changes |= ChangeFlags::Artist;
     }
 
-    //----------------------------------------------------------
-    // Tytuł utworu.
-    //----------------------------------------------------------
+   //----------------------------------------------------------
+   // Zmiana tytułu.
+   //----------------------------------------------------------
 
-    if (strcmp(previous.title, current.title) != 0)
+if (previous.title != current.title)
     {
         changes |= ChangeFlags::Title;
     }

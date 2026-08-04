@@ -661,7 +661,7 @@ void Display::update(const PlayerState& player,
 
     initScroll(
         titleScroll,
-        player.title,
+        player.title.c_str(),
         TEXT_WIDTH,
         &FONT_TITLE);
 
@@ -684,7 +684,7 @@ void Display::update(const PlayerState& player,
 
     initScroll(
         artistScroll,
-        player.artist,
+        player.artist.c_str(),
         TEXT_WIDTH,
         &FONT_ARTIST);
    }
@@ -733,14 +733,16 @@ void Display::drawPlayerScreen(const PlayerState& player)
     // Nagłówek z nazwą źródła + separator (linia oddzielająca).
     //----------------------------------------------------------
 
-        drawHeaderArea(player.source);
-
+        drawHeaderArea(
+    player.source.c_str());
+    
     //----------------------------------------------------------
     // Informacje o aktualnie odtwarzanym utworze.
     //----------------------------------------------------------
 
-    drawTrackInfo(player.title,
-              player.artist);
+   drawTrackInfo(
+    player.title.c_str(),
+    player.artist.c_str());
 
     //----------------------------------------------------------
     // Pasek postępu odtwarzania.
