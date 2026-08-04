@@ -54,14 +54,18 @@ public:
     void begin(HardwareSerial& serial);
 
 
-    //----------------------------------------------------------
-    // Aktualizacja.
-    //
-    // Funkcja odczytuje dane z UART i zwraca informacje
-    // o zmianach wykrytych w stanie odtwarzacza.
-    //----------------------------------------------------------
+   //----------------------------------------------------------
+   // Aktualizacja danych odtwarzacza.
+   //
+   // Funkcja odczytuje wszystkie oczekujące dane z UART
+   // i aktualizuje strukturę PlayerState.
+   //
+   // Funkcja nie porównuje stanów i nie zwraca informacji
+   // o zmianach. Za wykrywanie zmian odpowiada klasa
+   // StateComparer.
+   //----------------------------------------------------------
 
-    ChangeFlags update(PlayerState& player);
+    void update(PlayerState& player);
 
 
 private:
@@ -108,6 +112,19 @@ private:
     ChangeFlags processMessage(
         const char* message,
         PlayerState& player);
+
+        //----------------------------------------------------------
+        // Analiza komunikatu PLA.
+        //
+        // Przykład:
+        //
+        // PLA:0;
+        // PLA:1;
+        //----------------------------------------------------------
+
+bool parsePlayState(
+    const char* message,
+    PlayerState& player);
 
 };
 
