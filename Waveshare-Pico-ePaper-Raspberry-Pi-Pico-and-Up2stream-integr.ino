@@ -14,12 +14,19 @@
 #include "Display.h"
 #include "StateComparer.h"
 #include "UTF8Print.h"
+#include "Up2StreamClient.h"
 
 //==============================================================
 // Utworzenie obiektu odpowiedzialnego za obsługę wyświetlacza.
 //==============================================================
 
 Display display;
+
+//--------------------------------------------------------------
+// Komunikacja z modułem Up2Stream.
+//--------------------------------------------------------------
+
+Up2StreamClient up2stream;
 
 //==============================================================
 // Bufory stanu odtwarzacza.
