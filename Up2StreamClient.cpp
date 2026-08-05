@@ -113,6 +113,17 @@ ChangeFlags Up2StreamClient::update(PlayerState& player)
         char c = uart->read();
 
         //------------------------------------------------------
+        // Diagnostyka UART.
+        //
+        // Wszystkie odebrane znaki są kopiowane na port
+        // debugowania. Dzięki temu można sprawdzić, czy Pico
+        // odbiera dokładnie te same dane, które wcześniej były
+        // widoczne w PuTTY.
+        //------------------------------------------------------
+
+        Serial.write(c);
+
+        //------------------------------------------------------
         // Zabezpieczenie przed przepełnieniem bufora.
         //------------------------------------------------------
 

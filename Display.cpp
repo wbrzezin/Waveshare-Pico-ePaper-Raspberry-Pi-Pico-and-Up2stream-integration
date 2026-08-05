@@ -15,6 +15,7 @@
 //==============================================================
 
 #include "Display.h"
+#include "HardwareConfig.h"
 #include <SPI.h>
 #include <GxEPD2_BW.h>
 #include <GxEPD2_3C.h>
@@ -131,18 +132,20 @@ SPIClassRP2040 SPIn(spi1, 12, 13, 10, 11);
 #endif
 
 
-//==============================================================
-// Utworzenie obiektu wyświetlacza
+//--------------------------------------------------------------
+// Obiekt sterownika wyświetlacza e-paper.
 //
-// Parametry konstruktora:
-// CS   - GP9
-// DC   - GP8
-// RST  - GP12
-// BUSY - GP13
-//==============================================================
+// Numery pinów pobierane są z HardwareConfig.h,
+// dzięki czemu cała konfiguracja sprzętu znajduje się
+// w jednym miejscu.
+//--------------------------------------------------------------
 
 GxEPD2_BW<GxEPD2_213_B74, GxEPD2_213_B74::HEIGHT> epd(
-    GxEPD2_213_B74(9, 8, 12, 13));
+    GxEPD2_213_B74(
+        DISPLAY_CS_PIN,
+        DISPLAY_DC_PIN,
+        DISPLAY_RST_PIN,
+        DISPLAY_BUSY_PIN));
 
 
 //==============================================================

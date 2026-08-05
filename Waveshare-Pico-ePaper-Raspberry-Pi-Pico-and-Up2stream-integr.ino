@@ -15,6 +15,7 @@
 #include "StateComparer.h"
 #include "UTF8Print.h"
 #include "Up2StreamClient.h"
+#include "HardwareConfig.h"
 
 //==============================================================
 // Utworzenie obiektu odpowiedzialnego za obsługę wyświetlacza.
@@ -27,6 +28,15 @@ Display display;
 //--------------------------------------------------------------
 
 Up2StreamClient up2stream;
+
+//--------------------------------------------------------------
+// Źródło danych odtwarzacza.
+//
+// true  - dane testowe
+// false - komunikacja z modułem Up2Stream
+//--------------------------------------------------------------
+
+constexpr bool USE_TEST_DATA = true;
 
 //==============================================================
 // Bufory stanu odtwarzacza.
@@ -43,6 +53,32 @@ Up2StreamClient up2stream;
 PlayerState previousState;
 PlayerState currentState;
 
+//==============================================================
+// Wczytanie przykładowych danych.
+//
+// Funkcja wykorzystywana podczas projektowania interfejsu
+// użytkownika bez podłączonego modułu Up2Stream.
+//==============================================================
+
+void loadTestData(PlayerState& state)
+{
+    state.source = "Spotify";
+
+    state.artist = "Zażółć gęślą jaźń";
+
+    state.title =
+        "Money For Nothing - Dire Straits - Brothers In Arms - Remastered 2025";
+
+    state.currentTime = "02:15";
+
+    state.totalTime = "08:26";
+
+    state.progress = 35;
+
+    state.volume = 38;
+
+    state.playing = true;
+}
 
 //==============================================================
 // Funkcja setup()
@@ -74,6 +110,27 @@ void setup()
     display.begin();
 
     //----------------------------------------------------------
+    // Konfiguracja portu UART wykorzystywanego do komunikacji
+    // z modułem Up2Stream.
+    //----------------------------------------------------------
+
+    UP2STREAM_SERIAL.setTX(
+        UP2STREAM_UART_TX_PIN);
+
+    UP2STREAM_SERIAL.setRX(
+        UP2STREAM_UART_RX_PIN);
+
+    UP2STREAM_SERIAL.begin(115200);
+
+    //----------------------------------------------------------
+    // Inicjalizacja klienta Up2Stream.
+    //----------------------------------------------------------
+
+    up2stream.begin(
+        UP2STREAM_SERIAL);
+
+
+    //----------------------------------------------------------
     // Krótkie opóźnienie umożliwiające obejrzenie ekranu
     // startowego.
     //----------------------------------------------------------
@@ -87,17 +144,7 @@ void setup()
 // UP2Stream.
 //----------------------------------------------------------
 
-currentState.source      = "Spotify";
-currentState.artist      = "Zażółć gęślą jaźń";
-currentState.title       = "Money For Nothing - Dire Straits - Brothers In Arms - Remastered 2025";
-
-currentState.currentTime = "02:15";
-currentState.totalTime   = "08:26";
-
-currentState.progress    = 35;
-currentState.volume      = 38;
-
-currentState.playing     = true;
+loadTestData(currentState);
 
 
 //==========================================================
@@ -153,12 +200,23 @@ previousState = currentState;
 void loop()
 {
     //----------------------------------------------------------
-    // Aktualizacja przewijania.
+    // Odczyt danych z modułu Up2Stream.
     //----------------------------------------------------------
 
-    ChangeFlags changes = ChangeFlags::None;
+    ChangeFlags changes =
+        up2stream.update(currentState);
 
-    display.update(currentState, changes);
+    //----------------------------------------------------------
+    // Aktualizacja wyświetlacza.
+    //----------------------------------------------------------
+
+    display.update(
+        currentState,
+        changes);
+
+    //----------------------------------------------------------
+    // Ograniczenie częstotliwości odświeżania.
+    //----------------------------------------------------------
 
     delay(40);
 }
