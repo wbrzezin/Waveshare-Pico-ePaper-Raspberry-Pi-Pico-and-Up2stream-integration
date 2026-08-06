@@ -114,6 +114,7 @@ void setup()
     // z modułem Up2Stream.
     //----------------------------------------------------------
 
+
     UP2STREAM_SERIAL.setTX(
         UP2STREAM_UART_TX_PIN);
 

@@ -45,6 +45,6 @@ constexpr uint8_t UP2STREAM_UART_RX_PIN = 5;
 // RX -> GPIO5
 //==============================================================
 
-#define UP2STREAM_SERIAL Serial1
+#define UP2STREAM_SERIAL Serial2
 
 #endif
