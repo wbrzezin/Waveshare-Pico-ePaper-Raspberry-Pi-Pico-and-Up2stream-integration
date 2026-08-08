@@ -1354,7 +1354,7 @@ else
     printPL(epd, "\x93");
 }
 
-epd.print(" ");
+epd.print("  ");
 printPL(epd, currentTime);
 
     //----------------------------------------------------------
