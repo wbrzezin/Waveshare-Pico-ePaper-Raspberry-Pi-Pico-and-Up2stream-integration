@@ -383,21 +383,30 @@ void drawScrollingText(const char* text,
    void drawTrackInfo(const char* title,
                    const char* artist);
 
-    //----------------------------------------------------------
-    // Rysowanie paska postępu odtwarzania.
-    //
-    // currentTime
-    //      Aktualny czas odtwarzania.
-    //
-    // totalTime
-    //      Całkowity czas utworu.
-    //
-    // progress
-    //      Postęp odtwarzania (0...100%).
-    //----------------------------------------------------------
-    void drawPlaybackBar(const char* currentTime,
-                         const char* totalTime,
-                         int progress);
+   //----------------------------------------------------------
+// Rysowanie paska postępu odtwarzania.
+//
+// Parametry:
+//
+// currentTime
+//      Aktualny czas odtwarzania.
+//
+// totalTime
+//      Całkowity czas utworu.
+//
+// progress
+//      Postęp odtwarzania w procentach.
+//
+// playing
+//      true  - odtwarzanie
+//      false - pauza / zatrzymanie.
+//----------------------------------------------------------
+
+void drawPlaybackBar(
+    const char* currentTime,
+    const char* totalTime,
+    int progress,
+    bool playing);
 
     //----------------------------------------------------------
     // Rysowanie aktualnego poziomu głośności.
@@ -437,7 +446,24 @@ ScrollState titleScroll;
 
 ScrollState artistScroll;
 
+//--------------------------------------------------------------
+// Stan ekranu bezczynności.
+//
+// false - wyświetlany jest ekran odtwarzacza
+// true  - wyświetlany jest ekran zegara
+//--------------------------------------------------------------
 
+bool idleScreenActive;
+
+//--------------------------------------------------------------
+// Czas ostatniej istotnej aktywności.
+//
+// Nie uwzględniamy tutaj zmian samego czasu odtwarzania.
+// Dzięki temu zegar może pojawić się również podczas
+// ciągłego odtwarzania muzyki.
+//--------------------------------------------------------------
+
+uint32_t lastActivityMillis;
 
 };
 

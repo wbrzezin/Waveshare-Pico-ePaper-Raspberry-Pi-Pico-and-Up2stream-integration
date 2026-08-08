@@ -120,6 +120,14 @@ constexpr int TEXT_WIDTH           = 230;
 constexpr uint32_t PAGE_DISPLAY_TIME = 2000;
 
 //==============================================================
+// Czas bezczynności przed przełączeniem na ekran zegara [ms].
+//
+// Na etapie testów ustawiamy 5 sekund.
+//==============================================================
+
+constexpr uint32_t IDLE_TIMEOUT = 5000;
+
+//==============================================================
 // Konfiguracja interfejsu SPI dla Raspberry Pi Pico RP2040
 //
 // Wyświetlacz korzysta z drugiego kontrolera SPI (SPI1),
@@ -157,12 +165,33 @@ GxEPD2_BW<GxEPD2_213_B74, GxEPD2_213_B74::HEIGHT> epd(
 
 bool Display::begin()
 {
-    epd.epd2.selectSPI(SPIn, SPISettings(4000000, MSBFIRST, SPI_MODE0));
+    epd.epd2.selectSPI(
+        SPIn,
+        SPISettings(4000000, MSBFIRST, SPI_MODE0));
 
     pinMode(16, OUTPUT);
     digitalWrite(16, HIGH);
 
     epd.init(115200, true, 2, false);
+
+    //----------------------------------------------------------
+    // Początkowo wyświetlany jest ekran odtwarzacza.
+    //----------------------------------------------------------
+
+    idleScreenActive = false;
+
+    //----------------------------------------------------------
+    // Zapamiętujemy moment uruchomienia bezczynności.
+    //
+    // Dzięki temu ekran zegara pojawi się po IDLE_TIMEOUT
+    // milisekundach, jeżeli nie wystąpi żadna istotna zmiana.
+    //----------------------------------------------------------
+
+    lastActivityMillis = millis();
+
+    //----------------------------------------------------------
+    // Wyświetlenie ekranu startowego.
+    //----------------------------------------------------------
 
     splash();
 
@@ -646,11 +675,135 @@ epd.fillRect(
 void Display::update(const PlayerState& player,
                      ChangeFlags changes)
 {
+    //----------------------------------------------------------
+    // Obsługa ekranu bezczynności.
+   //-----------------------------------------------------------
 
-   //----------------------------------------------------------
-   // Jeżeli zmienił się tytuł utworu,
-   // zainicjalizuj przewijanie od początku.
-   //----------------------------------------------------------
+       //----------------------------------------------------------
+    // Obsługa ekranu bezczynności.
+    //
+    // Ekran zegara jest używany tylko wtedy, gdy odtwarzanie
+    // jest zatrzymane lub wstrzymane.
+    //
+    // Podczas odtwarzania muzyki ekran odtwarzacza pozostaje
+    // aktywny niezależnie od tego, jak długo nie zmieniają się
+    // informacje o utworze.
+    //----------------------------------------------------------
+
+    ChangeFlags activityChanges =
+        changes &
+        (
+            ChangeFlags::Source |
+            ChangeFlags::Artist |
+            ChangeFlags::Title |
+            ChangeFlags::Volume |
+            ChangeFlags::PlayState |
+            ChangeFlags::Mute
+        );
+
+    //----------------------------------------------------------
+    // Jeżeli wystąpiła istotna zmiana, zapamiętaj jej moment.
+    //----------------------------------------------------------
+
+    if (activityChanges != ChangeFlags::None)
+    {
+        lastActivityMillis = millis();
+
+        //------------------------------------------------------
+        // Jeżeli aktualnie wyświetlany jest ekran zegara,
+        // wracamy do ekranu odtwarzacza.
+        //------------------------------------------------------
+
+        if (idleScreenActive)
+        {
+            idleScreenActive = false;
+
+            Serial.println(
+                "DISPLAY: POWROT DO EKRANU ODTWARZACZA");
+
+            showPlayer(player);
+
+            return;
+        }
+    }
+
+    //----------------------------------------------------------
+    // Jeżeli muzyka jest aktualnie odtwarzana, ekran zegara
+    // nie może zostać uruchomiony.
+    //
+    // Jest to najważniejszy warunek całej obsługi bezczynności.
+    //----------------------------------------------------------
+
+    if (player.playing)
+    {
+        //------------------------------------------------------
+        // Zabezpieczenie:
+        //
+        // Jeżeli z jakiegoś powodu ekran zegara był aktywny
+        // podczas odtwarzania, natychmiast wracamy do ekranu
+        // odtwarzacza.
+        //------------------------------------------------------
+
+        if (idleScreenActive)
+        {
+            idleScreenActive = false;
+
+            Serial.println(
+                "DISPLAY: PLAY - POWROT DO EKRANU ODTWARZACZA");
+
+            showPlayer(player);
+
+            return;
+        }
+
+        //------------------------------------------------------
+        // Muzyka gra, więc nie sprawdzamy tutaj timeoutu
+        // bezczynności.
+        //------------------------------------------------------
+    }
+    else
+    {
+        //------------------------------------------------------
+        // Muzyka nie jest odtwarzana.
+        //
+        // Jeżeli ekran zegara jest już aktywny, pozostawiamy
+        // go bez zmian.
+        //------------------------------------------------------
+
+        if (idleScreenActive)
+        {
+            return;
+        }
+
+        //------------------------------------------------------
+        // Muzyka jest zatrzymana lub wstrzymana.
+        //
+        // Sprawdzamy, czy minął czas bezczynności.
+        //
+        // Na obecnym etapie:
+        //
+        // IDLE_TIMEOUT = 5000 ms = 5 sekund.
+        //------------------------------------------------------
+
+        if (millis() - lastActivityMillis >= IDLE_TIMEOUT)
+        {
+            idleScreenActive = true;
+
+            Serial.println(
+                "DISPLAY: PRZEJSCIE DO EKRANU ZEGARA");
+
+            showIdle();
+
+            return;
+        }
+    }
+
+
+    //----------------------------------------------------------
+    // Jeżeli zmienił się tytuł utworu,
+    // zainicjalizuj przewijanie od początku.
+    //----------------------------------------------------------
+
 
    if ((changes & ChangeFlags::Title) != ChangeFlags::None)
    {
@@ -765,13 +918,21 @@ void Display::drawPlayerScreen(const PlayerState& player)
     player.title.c_str(),
     player.artist.c_str());
 
-    //----------------------------------------------------------
-    // Pasek postępu odtwarzania.
-    //----------------------------------------------------------
+//----------------------------------------------------------
+// Pasek postępu odtwarzania.
+//
+// Przekazujemy również aktualny stan odtwarzania,
+// aby ikona mogła pokazać:
+//
+// PLAY  - podczas odtwarzania,
+// PAUSE - podczas pauzy.
+//----------------------------------------------------------
 
-    drawPlaybackBar(player.currentTime,
-                    player.totalTime,
-                    player.progress);
+   drawPlaybackBar(
+    player.currentTime,
+    player.totalTime,
+    player.progress,
+    player.playing);
 
     //----------------------------------------------------------
     // Aktualny poziom głośności.
@@ -1141,9 +1302,11 @@ drawScrollingText(artist,
 // - całkowity czas utworu.
 //==============================================================
 
-void Display::drawPlaybackBar(const char* currentTime,
-                              const char* totalTime,
-                              int progress)
+void Display::drawPlaybackBar(
+    const char* currentTime,
+    const char* totalTime,
+    int progress,
+    bool playing)
 {
 
     //----------------------------------------------------------
@@ -1163,19 +1326,34 @@ void Display::drawPlaybackBar(const char* currentTime,
     Serial.println(progress);
 
 
-    //----------------------------------------------------------
-    // Aktualny czas odtwarzania.
-    //
-    // Ikona stanu odtwarzania jest wyświetlana jako pierwszy
-    // znak ciągu tekstowego. Dzięki temu można ocenić wygląd
-    // glifu wygenerowanego w czcionce oraz jego wyrównanie
-    // względem cyfr czasu.
-    //----------------------------------------------------------
+//----------------------------------------------------------
+// Ikona stanu odtwarzania.
+//
+// PLAY  - gdy odtwarzanie jest aktywne.
+// PAUSE - gdy odtwarzanie jest wstrzymane.
+//----------------------------------------------------------
+
 epd.setFont(&FONT_TIME);
 
 epd.setCursor(CURRENT_TIME_X, TIME_Y);
 
-printPL(epd, "\x92");
+if (playing)
+{
+    //------------------------------------------------------
+    // Ikona PLAY - trójkąt.
+    //------------------------------------------------------
+
+    printPL(epd, "\x92");
+}
+else
+{
+    //------------------------------------------------------
+    // Ikona PAUSE - dwie pionowe kreski.
+    //------------------------------------------------------
+
+    printPL(epd, "\x93");
+}
+
 epd.print(" ");
 printPL(epd, currentTime);
 

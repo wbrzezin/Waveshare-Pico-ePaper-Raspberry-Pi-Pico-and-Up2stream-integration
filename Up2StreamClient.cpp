@@ -93,6 +93,8 @@ ChangeFlags Up2StreamClient::update(PlayerState& player)
         return ChangeFlags::None;
     }
 
+
+
     //----------------------------------------------------------
     // Zestaw zmian wykrytych podczas tego wywołania update().
     //
