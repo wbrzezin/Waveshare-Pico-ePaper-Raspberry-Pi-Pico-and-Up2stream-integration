@@ -40,6 +40,12 @@ Up2StreamClient::Up2StreamClient()
 
     rxPosition = 0;
 
+    //----------------------------------------------------------
+    // Na początku nie oczekujemy na ELP nowego utworu.
+    //----------------------------------------------------------
+
+    waitingForTrackELP = false;
+
     rxBuffer[0] = '\0';
 }
 
@@ -593,12 +599,46 @@ Serial.println(
 
     if (strncmp(message, "TIT:", 4) == 0)
     {
+
+
+
         //------------------------------------------------------
         // Początek właściwego tytułu.
         //------------------------------------------------------
 
         const char* titleStart =
             message + 4;
+
+        //------------------------------------------------------
+        // Rozpoczęcie obsługi nowego utworu.
+        //
+        // Sam komunikat TIT oznacza, że zmienił się utwór,
+        // ale nie znamy jeszcze jego całkowitego czasu.
+        //
+        // Czas całkowity zostanie uzupełniony dopiero po
+        // odebraniu pierwszego ELP dla nowego utworu.
+        //------------------------------------------------------
+
+        waitingForTrackELP = true;
+
+        //------------------------------------------------------
+        // Zerujemy lokalny stan czasu.
+        //
+        // Nie wolno pozostawić tutaj wartości poprzedniego
+        // utworu, ponieważ przez pewien czas może ona być
+        // jeszcze wyświetlana.
+        //------------------------------------------------------
+
+        player.elapsedMs = 0;
+
+        player.currentTime =
+            "00:00";
+
+        player.totalTime =
+            "--:--";
+
+        player.progress =
+            0;    
 
         //------------------------------------------------------
         // Up2Stream może skleić TIT z kolejnym komunikatem ELP.
@@ -788,8 +828,11 @@ Serial.println(
         // wygenerowane przez osadzony komunikat ELP.
         //------------------------------------------------------
 
-        return ChangeFlags::Title |
-               embeddedChanges;
+       return ChangeFlags::Title |
+          ChangeFlags::CurrentTime |
+          ChangeFlags::TotalTime |
+          ChangeFlags::Progress |
+          embeddedChanges;
     }
 
     //==========================================================
@@ -884,6 +927,15 @@ Serial.println(
                 separator + 1,
                 nullptr,
                 10);
+
+        //------------------------------------------------------
+        // Otrzymaliśmy ELP po zmianie utworu.
+        //
+        // Oznacza to, że znamy już całkowity czas nowego
+        // utworu. Nie musimy więc dłużej oczekiwać na ELP.
+        //------------------------------------------------------
+
+        waitingForTrackELP = false;
 
 
   //------------------------------------------------------

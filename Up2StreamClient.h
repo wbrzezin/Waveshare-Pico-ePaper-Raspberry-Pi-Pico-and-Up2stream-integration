@@ -93,7 +93,20 @@ private:
 
     uint16_t rxPosition;
 
-        //----------------------------------------------------------
+    //----------------------------------------------------------
+    // Informacja o zmianie utworu.
+    //
+    // Po odebraniu TIT poprzednia wartość totalTime
+    // przestaje być wiarygodna dla nowego utworu.
+    //
+    // Czekamy wtedy na pierwszą komendę ELP,
+    // która poda aktualny czas oraz całkowity czas
+    // nowego utworu.
+    //----------------------------------------------------------
+
+    bool waitingForTrackELP;
+
+    //----------------------------------------------------------
     // Analiza pojedynczego komunikatu odebranego z UART.
     //
     // Parametry:
