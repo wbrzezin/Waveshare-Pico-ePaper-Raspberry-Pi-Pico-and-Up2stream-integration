@@ -37,7 +37,9 @@ enum class ChangeFlags : uint16_t
 
     Volume      = 0x0040,
 
-    PlayState   = 0x0080
+    PlayState   = 0x0080,
+
+    Mute        = 0x0100,
 };
 
 

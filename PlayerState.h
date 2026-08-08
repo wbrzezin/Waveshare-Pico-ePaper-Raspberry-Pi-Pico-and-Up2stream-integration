@@ -93,9 +93,6 @@ struct PlayerState
         vendor = "";
 
         elapsedMs = 0;
-
-        totalMs = 0;
-
         playlistIndex = 0;
 
         playlistCount = 0;
@@ -234,6 +231,15 @@ String vendor;
 //----------------------------------------------------------
 
 uint32_t elapsedMs;
+
+//----------------------------------------------------------
+// Moment rozpoczęcia lokalnego odmierzania czasu.
+//
+// Wartość pochodzi z millis() i służy do wyliczania
+// aktualnej pozycji odtwarzania pomiędzy komunikatami ELP.
+//----------------------------------------------------------
+
+uint32_t playbackStartMillis;
 
 //----------------------------------------------------------
 // Całkowity czas utworu.

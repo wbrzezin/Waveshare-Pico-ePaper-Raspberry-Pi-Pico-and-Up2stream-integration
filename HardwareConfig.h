@@ -36,14 +36,18 @@ constexpr uint8_t UP2STREAM_UART_TX_PIN = 4;
 constexpr uint8_t UP2STREAM_UART_RX_PIN = 5;
 
 
-//==============================================================
-// Port szeregowy wykorzystywany przez moduł Up2Stream.
+//--------------------------------------------------------------
+// Port UART wykorzystywany do komunikacji z modułem Up2Stream.
 //
-// UART1:
+// W rdzeniu Raspberry Pi Pico/RP2040 by Earle Philhower:
 //
-// TX -> GPIO4
-// RX -> GPIO5
-//==============================================================
+//   Serial1 -> UART0
+//   Serial2 -> UART1
+//
+// Up2Stream wykorzystuje UART1.
+//--------------------------------------------------------------
+
+#define UP2STREAM_SERIAL Serial2
 
 #define UP2STREAM_SERIAL Serial2
 

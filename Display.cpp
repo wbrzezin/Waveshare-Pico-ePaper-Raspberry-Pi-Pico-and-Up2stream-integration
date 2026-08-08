@@ -508,7 +508,7 @@ void Display::refreshPartial(const PlayerState& player,
 
     do
 {
-     drawIdleScreen();
+     drawPlayerScreen(player);
 }
 while (epd.nextPage());
 
@@ -709,12 +709,30 @@ void Display::update(const PlayerState& player,
  //----------------------------------------------------------
 
 
-  if (changes != ChangeFlags::None ||
+ if (changes != ChangeFlags::None ||
     titleMoved ||
     artistMoved)
-  {
+{
+    //----------------------------------------------------------
+    // Diagnostyka aktualizacji ekranu.
+    //
+    // Sprawdzamy, czy każda zmiana głośności dociera
+    // do modułu Display.
+    //----------------------------------------------------------
+
+    Serial.print("DISPLAY UPDATE  VOL=");
+    Serial.print(player.volume);
+
+    Serial.print("  CHANGES=");
+    Serial.println(
+        static_cast<uint16_t>(changes));
+
     refreshPartial(player, changes);
-  }
+
+    Serial.print("DISPLAY TITLE = [");
+    Serial.print(player.title);
+    Serial.println("]");
+}
 }
 
 
@@ -972,7 +990,15 @@ void Display::drawTrackInfo(const char* title,
 
 void Display::drawTitle(const char* title)
 {
+    Serial.print("DRAW TITLE = [");
+    Serial.print(title);
+    Serial.print("]  pages=");
+    Serial.print(titleScroll.pageCount);
+    Serial.print("  page=");
+    Serial.println(titleScroll.currentPage);
+
     epd.setFont(&FONT_TITLE);
+
     drawScrollingText(title,
                       titleScroll,
                       MARGIN_X,
@@ -1119,6 +1145,23 @@ void Display::drawPlaybackBar(const char* currentTime,
                               const char* totalTime,
                               int progress)
 {
+
+    //----------------------------------------------------------
+    // Diagnostyka danych przekazywanych do paska odtwarzania.
+    //----------------------------------------------------------
+
+    Serial.print("DRAW PLAYBACK  ");
+
+    Serial.print(currentTime);
+
+    Serial.print(" / ");
+
+    Serial.print(totalTime);
+
+    Serial.print("  PROGRESS=");
+
+    Serial.println(progress);
+
 
     //----------------------------------------------------------
     // Aktualny czas odtwarzania.

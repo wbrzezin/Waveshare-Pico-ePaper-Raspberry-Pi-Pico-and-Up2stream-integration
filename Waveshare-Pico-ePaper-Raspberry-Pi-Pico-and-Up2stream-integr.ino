@@ -62,7 +62,9 @@ PlayerState currentState;
 
 void loadTestData(PlayerState& state)
 {
-    state.source = "Spotify";
+    Serial.println("!!! loadTestData() !!!");
+    
+    state.source = "Źródło";
 
     state.artist = "Zażółć gęślą jaźń";
 
@@ -109,19 +111,32 @@ void setup()
 
     display.begin();
 
-    //----------------------------------------------------------
-    // Konfiguracja portu UART wykorzystywanego do komunikacji
-    // z modułem Up2Stream.
-    //----------------------------------------------------------
+//----------------------------------------------------------
+// Konfiguracja portu UART wykorzystywanego do komunikacji
+// z modułem Up2Stream.
+//----------------------------------------------------------
 
+UP2STREAM_SERIAL.setTX(
+    UP2STREAM_UART_TX_PIN);
 
-    UP2STREAM_SERIAL.setTX(
-        UP2STREAM_UART_TX_PIN);
+UP2STREAM_SERIAL.setRX(
+    UP2STREAM_UART_RX_PIN);
 
-    UP2STREAM_SERIAL.setRX(
-        UP2STREAM_UART_RX_PIN);
+//----------------------------------------------------------
+// Zwiększenie sprzętowego bufora odbiorczego UART.
+//
+// Domyślny FIFO UART w Arduino-Pico ma 32 bajty.
+// Zwiększamy go do 128 bajtów, aby ograniczyć ryzyko
+// utraty znaków podczas odbioru dłuższych komunikatów,
+// szczególnie podczas pracy wyświetlacza e-paper.
+//
+// UWAGA:
+// setFIFOSize() musi zostać wywołane przed begin().
+//----------------------------------------------------------
 
-    UP2STREAM_SERIAL.begin(115200);
+UP2STREAM_SERIAL.setFIFOSize(128);
+
+UP2STREAM_SERIAL.begin(115200);
 
     //----------------------------------------------------------
     // Inicjalizacja klienta Up2Stream.
@@ -206,6 +221,20 @@ void loop()
 
     ChangeFlags changes =
         up2stream.update(currentState);
+
+           //----------------------------------------------------------
+    // Diagnostyka zmian odebranych z Up2Stream.
+    //----------------------------------------------------------
+
+    if (changes != ChangeFlags::None)
+    {
+        Serial.print("LOOP CHANGES = ");
+        Serial.print(
+            static_cast<uint16_t>(changes));
+
+        Serial.print("  VOLUME = ");
+        Serial.println(currentState.volume);
+    } 
 
     //----------------------------------------------------------
     // Aktualizacja wyświetlacza.
