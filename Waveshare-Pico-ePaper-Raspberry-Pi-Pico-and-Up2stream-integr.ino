@@ -64,12 +64,12 @@ void loadTestData(PlayerState& state)
 {
     Serial.println("!!! loadTestData() !!!");
     
-    state.source = "Źródło";
+    state.source = "--";
 
-    state.artist = "Zażółć gęślą jaźń";
+    state.artist = "...";
 
     state.title =
-        "Money For Nothing - Dire Straits - Brothers In Arms - Remastered 2025";
+        "...";
 
     state.currentTime = "02:15";
 
@@ -222,19 +222,7 @@ void loop()
     ChangeFlags changes =
         up2stream.update(currentState);
 
-           //----------------------------------------------------------
-    // Diagnostyka zmian odebranych z Up2Stream.
-    //----------------------------------------------------------
-
-    if (changes != ChangeFlags::None)
-    {
-        Serial.print("LOOP CHANGES = ");
-        Serial.print(
-            static_cast<uint16_t>(changes));
-
-        Serial.print("  VOLUME = ");
-        Serial.println(currentState.volume);
-    } 
+ 
 
     //----------------------------------------------------------
     // Aktualizacja wyświetlacza.

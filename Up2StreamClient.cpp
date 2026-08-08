@@ -152,25 +152,6 @@ ChangeFlags Up2StreamClient::update(PlayerState& player)
             //--------------------------------------------------
 
 
-//--------------------------------------------------
-// Diagnostyka kompletnego komunikatu.
-//
-// Pokazujemy:
-// • aktualną pozycję w buforze,
-// • zawartość całego bufora.
-//
-// Dzięki temu możemy sprawdzić, czy ten sam
-// komunikat rzeczywiście pojawia się drugi raz,
-// czy problem powstaje podczas składania komunikatu.
-//--------------------------------------------------
-
-Serial.print("RAW COMPLETE rxPosition=");
-Serial.print(rxPosition);
-
-Serial.print(" [");
-Serial.print(rxBuffer);
-Serial.println("]");
-
             
             ChangeFlags messageChanges =
                 processMessage(
@@ -382,30 +363,7 @@ ChangeFlags Up2StreamClient::processMessage(
         message++;
     }
 
-    //----------------------------------------------------------
-    // Diagnostyka parsera.
-    //
-    // Tymczasowo pozostawiamy ten komunikat, aby sprawdzić
-    // poprawność odbieranych komend.
-    //----------------------------------------------------------
-
-    Serial.print("PARSER MESSAGE=[");
-
-    Serial.print(message);
-
-    Serial.println("]");
-
-    //----------------------------------------------------------
-// Diagnostyka rozpoznawania komendy TIT.
-//----------------------------------------------------------
-
-Serial.print("TIT TEST = ");
-
-Serial.println(
-    strncmp(message, "TIT:", 4));
-
-
-    //==========================================================
+        //==========================================================
     // Komenda PLAY / PAUSE
     //==========================================================
 
@@ -664,13 +622,7 @@ Serial.println(
 
         if (embeddedELP != nullptr)
         {
-            //--------------------------------------------------
-            // Diagnostyka.
-            //--------------------------------------------------
-
-            Serial.print("TIT EMBEDDED ELP = [");
-            Serial.print(embeddedELP);
-            Serial.println("]");
+           
 
             //--------------------------------------------------
             // Przetwórz np.:
@@ -815,15 +767,7 @@ Serial.println(
             }
         }
 
-        //------------------------------------------------------
-        // Diagnostyka.
-        //------------------------------------------------------
-
-        Serial.print("TIT PARSED = [");
-        Serial.print(player.title);
-        Serial.println("]");
-
-        //------------------------------------------------------
+               //------------------------------------------------------
         // Zgłoś zmianę tytułu oraz ewentualne zmiany
         // wygenerowane przez osadzony komunikat ELP.
         //------------------------------------------------------
@@ -834,6 +778,55 @@ Serial.println(
           ChangeFlags::Progress |
           embeddedChanges;
     }
+
+//==========================================================
+// Komenda ART - nazwa wykonawcy
+//==========================================================
+//
+// Przykład:
+//
+// ART:Kazik;
+//
+// Up2Stream może przesyłać ART jako osobny komunikat.
+// Po odebraniu zapisujemy wykonawcę do PlayerState.
+//
+//==========================================================
+
+if (strncmp(message, "ART:", 4) == 0)
+{
+    //------------------------------------------------------
+    // Zapisz nazwę wykonawcy.
+    //
+    // Pomijamy pierwsze cztery znaki:
+    //
+    // A R T :
+    //
+    // Pozostała część zawiera właściwą nazwę wykonawcy.
+    //------------------------------------------------------
+
+    player.artist =
+        String(message + 4);
+
+    //------------------------------------------------------
+    // Usuń końcowy znak ';'.
+    //
+    // Średnik jest separatorem protokołu i nie należy
+    // do nazwy wykonawcy.
+    //------------------------------------------------------
+
+    if (player.artist.endsWith(";"))
+    {
+        player.artist.remove(
+            player.artist.length() - 1);
+    }
+
+  
+    //------------------------------------------------------
+    // Poinformuj Display o zmianie wykonawcy.
+    //------------------------------------------------------
+
+    return ChangeFlags::Artist;
+}
 
     //==========================================================
     // Komenda ELP - pozycja odtwarzania
@@ -1017,23 +1010,7 @@ Serial.println(
             player.progress = 0;
         }
        
-        //------------------------------------------------------
-        // Diagnostyka.
-        //------------------------------------------------------
-
-        Serial.print("ELP PARSED elapsed=");
-        Serial.print(player.elapsedMs);
-
-        Serial.print(" total=");
-        Serial.println(player.totalMs);
-
-        Serial.print("ELP TIME = ");
-        Serial.print(player.currentTime);
-
-        Serial.print("  PROGRESS = ");
-        Serial.println(player.progress);
-
-        //------------------------------------------------------
+              //------------------------------------------------------
         // Na tym etapie zgłaszamy zmianę czasu odtwarzania.
         //------------------------------------------------------
 
