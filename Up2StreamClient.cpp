@@ -64,7 +64,49 @@ void Up2StreamClient::begin(HardwareSerial& serial)
     uart = &serial;
 }
 
+//==============================================================
+// Wysłanie zapytania do modułu Up2Stream.
+//==============================================================
+//
+// Funkcja nie oczekuje na odpowiedź.
+//
+// Wysyła jedynie komendę do UART. Odpowiedź zostanie odebrana
+// podczas kolejnego wywołania update() i przekazana do istniejącego
+// parsera.
+//
+// Przykład:
+//
+//     query("TME;");
+//
+// wysyła:
+//
+//     TME;
+//
+//==============================================================
 
+void Up2StreamClient::query(const char* command)
+{
+    //----------------------------------------------------------
+    // Jeżeli UART nie został zainicjalizowany,
+//    // nie wykonujemy żadnej operacji.
+//----------------------------------------------------------
+
+    if (uart == nullptr)
+        return;
+
+    
+
+    //----------------------------------------------------------
+    // Wyślij zapytanie.
+//----------------------------------------------------------
+
+    uart->print(command);
+}
+
+const Up2StreamTime& Up2StreamClient::getTime() const
+{
+    return up2streamTime;
+}
 
 //==============================================================
 // Aktualizacja.
@@ -1043,11 +1085,165 @@ if (strncmp(message, "ART:", 4) == 0)
 
         player.muted = (message[4] == '1');
 
+        
         //------------------------------------------------------
         // Poinformuj wyświetlacz o zmianie stanu Mute.
         //------------------------------------------------------
 
         return ChangeFlags::Mute;
+    }
+
+        //==========================================================
+    // Komenda TME - aktualny czas urządzenia
+    //==========================================================
+    //
+    // Przykład:
+    //
+    // TME:2026-08-10 18:37:05 (+1);
+    //
+    // Na tym etapie:
+    //
+    // • odczytujemy datę,
+    // • odczytujemy godzinę,
+    // • odczytujemy przesunięcie UTC,
+    // • wyświetlamy wynik diagnostycznie.
+    //
+    // Nie ustawiamy jeszcze RTC Pico.
+    //==========================================================
+
+    if (strncmp(message, "TME:", 4) == 0)
+    {
+        int year   = 0;
+        int month  = 0;
+        int day    = 0;
+
+        int hour   = 0;
+        int minute = 0;
+        int second = 0;
+
+        int offset = 0;
+
+        //------------------------------------------------------
+        // Odczyt całej odpowiedzi TME.
+        //
+        // Przykład:
+        //
+        // TME:2026-08-10 18:37:05 (+1);
+        //------------------------------------------------------
+
+        int parsed =
+            sscanf(
+                message,
+                "TME:%4d-%2d-%2d %2d:%2d:%2d (%d);",
+                &year,
+                &month,
+                &day,
+                &hour,
+                &minute,
+                &second,
+                &offset);
+
+        //------------------------------------------------------
+        // Sprawdzenie poprawności komunikatu.
+        //
+        // Musimy otrzymać wszystkie 7 wartości.
+        //------------------------------------------------------
+
+        if (parsed == 7)
+        {
+
+            up2streamTime.year = year;
+            up2streamTime.month = month;
+            up2streamTime.day = day;
+
+            up2streamTime.hour = hour;
+            up2streamTime.minute = minute;
+            up2streamTime.second = second;
+
+            up2streamTime.utcOffset = offset;
+
+            up2streamTime.valid = true;
+
+            Serial.println(
+                "TME PARSED OK");
+
+            //--------------------------------------------------
+            // Data.
+            //--------------------------------------------------
+
+            Serial.print("TME DATE = ");
+
+            if (day < 10)
+                Serial.print('0');
+
+            Serial.print(day);
+
+            Serial.print('.');
+
+            if (month < 10)
+                Serial.print('0');
+
+            Serial.print(month);
+
+            Serial.print('.');
+
+            Serial.println(year);
+
+            //--------------------------------------------------
+            // Godzina.
+            //--------------------------------------------------
+
+            Serial.print("TME TIME = ");
+
+            if (hour < 10)
+                Serial.print('0');
+
+            Serial.print(hour);
+
+            Serial.print(':');
+
+            if (minute < 10)
+                Serial.print('0');
+
+            Serial.print(minute);
+
+            Serial.print(':');
+
+            if (second < 10)
+                Serial.print('0');
+
+            Serial.println(second);
+
+            //--------------------------------------------------
+            // Przesunięcie UTC.
+            //--------------------------------------------------
+
+            Serial.print("TME OFFSET = ");
+
+            if (offset >= 0)
+                Serial.print('+');
+
+            Serial.println(offset);
+        }
+        else
+        {
+            //--------------------------------------------------
+            // Nie udało się poprawnie sparsować komunikatu.
+            //--------------------------------------------------
+
+            Serial.print(
+                "TME PARSE ERROR: [");
+
+            Serial.print(message);
+
+            Serial.println(']');
+        }
+
+        //------------------------------------------------------
+        // TME nie zmienia jeszcze PlayerState.
+        //------------------------------------------------------
+
+        return ChangeFlags::None;
     }
 
     //==========================================================

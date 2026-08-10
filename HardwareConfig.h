@@ -49,6 +49,6 @@ constexpr uint8_t UP2STREAM_UART_RX_PIN = 5;
 
 #define UP2STREAM_SERIAL Serial2
 
-#define UP2STREAM_SERIAL Serial2
+
 
 #endif

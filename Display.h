@@ -120,6 +120,13 @@ void showPlayer(const PlayerState& player);
 
 void showIdle();
 
+    //--------------------------------------------------------------
+    // Aktualizacja zegara na ekranie bezczynności.
+    //
+    // Ekran jest odświeżany tylko po zmianie minuty.
+    //--------------------------------------------------------------
+    void updateIdle();
+    
     //----------------------------------------------------------
     // Aktualizacja zawartości wyświetlacza.
     //
@@ -137,6 +144,7 @@ void showIdle();
     // changes
     //      Flagi określające, które elementy uległy zmianie.
     //----------------------------------------------------------
+
     void update(const PlayerState& player,
                 ChangeFlags changes);
 

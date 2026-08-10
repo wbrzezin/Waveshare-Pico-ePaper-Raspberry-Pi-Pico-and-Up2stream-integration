@@ -31,6 +31,28 @@
 
 #include "ChangeFlags.h"
 
+//==============================================================
+// Czas odebrany z modułu Up2Stream.
+//
+// Dane pochodzą z odpowiedzi:
+//
+// TME:YYYY-MM-DD HH:MM:SS (+offset);
+//==============================================================
+
+struct Up2StreamTime
+{
+    int year = 0;
+    int month = 0;
+    int day = 0;
+
+    int hour = 0;
+    int minute = 0;
+    int second = 0;
+
+    int utcOffset = 0;
+
+    bool valid = false;
+};
 
 //==============================================================
 // Klasa Up2StreamClient
@@ -54,6 +76,19 @@ public:
     void begin(HardwareSerial& serial);
 
 
+//----------------------------------------------------------
+// Wysłanie zapytania do modułu Up2Stream.
+//
+// Zapytanie powinno być zakończone znakiem ';'.
+//
+// Przykłady:
+//     query("TME;");
+//     query("SRC;");
+//     query("STA;");
+//----------------------------------------------------------
+
+void query(const char* command);
+
     //----------------------------------------------------------
     // Aktualizacja.
     //
@@ -63,6 +98,11 @@ public:
 
     ChangeFlags update(PlayerState& player);
 
+//----------------------------------------------------------
+// Zwraca ostatni poprawnie odebrany czas TME.
+//----------------------------------------------------------
+
+const Up2StreamTime& getTime() const;
 
 private:
 
@@ -121,6 +161,14 @@ private:
     ChangeFlags processMessage(
         const char* message,
         PlayerState& player);
+
+//----------------------------------------------------------
+// Ostatni poprawnie odebrany czas TME.
+//----------------------------------------------------------
+
+Up2StreamTime up2streamTime;    
+
+        
 
 };
 

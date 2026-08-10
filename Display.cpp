@@ -22,6 +22,7 @@
 #include "UTF8Print.h"
 #include "Theme.h"
 #include "Icons.h"
+#include "hardware/rtc.h"
 
 
 //==============================================================
@@ -99,6 +100,15 @@ constexpr int IDLE_LINE_Y      = 98;
 constexpr int IDLE_FOOTER_X    = 10;
 constexpr int IDLE_FOOTER_Y    = 118;
 
+
+//--------------------------------------------------------------
+// Ostatnia minuta wyświetlona na ekranie Idle.
+//
+// Wartość -1 wymusza pierwszą aktualizację.
+//--------------------------------------------------------------
+int lastIdleMinute = -1;
+
+
 //--------------------------------------------------------------
 // Marginesy ekranu
 //--------------------------------------------------------------
@@ -165,6 +175,33 @@ GxEPD2_BW<GxEPD2_213_B74, GxEPD2_213_B74::HEIGHT> epd(
 
 bool Display::begin()
 {
+
+    //----------------------------------------------------------
+    // Inicjalizacja zegara RTC w RP2040.
+    //
+    // Na tym etapie ustawiamy zegar na czas kompilacji programu.
+    // Dzięki temu po wgraniu programu zegar rozpoczyna pracę
+    // od aktualnej daty i godziny.
+    //
+    // W przyszłości możemy dodać możliwość ustawiania zegara
+    // przez USB lub UART.
+    //----------------------------------------------------------
+
+    rtc_init();
+
+    datetime_t initialDateTime =
+    {
+        .year  = 2026,
+        .month = 8,
+        .day   = 10,
+        .dotw  = 1,
+        .hour  = 19,
+        .min   = 37,
+        .sec   = 0
+    };
+
+    rtc_set_datetime(&initialDateTime);
+
     epd.epd2.selectSPI(
         SPIn,
         SPISettings(4000000, MSBFIRST, SPI_MODE0));
@@ -574,6 +611,57 @@ void Display::showPlayer(const PlayerState& player)
 
 void Display::showIdle()
 {
+    //----------------------------------------------------------
+    // Wymuś natychmiastowe narysowanie aktualnej godziny.
+    //----------------------------------------------------------
+
+    lastIdleMinute = -1;
+
+    updateIdle();
+}
+
+//==============================================================
+// Funkcja updateIdle()
+//
+// Sprawdza aktualny czas RTC.
+//
+// Ekran e-paper jest odświeżany tylko wtedy, gdy zmieniła się
+// minuta. Dzięki temu nie wykonujemy niepotrzebnych odświeżeń.
+//==============================================================
+
+void Display::updateIdle()
+{
+    datetime_t now;
+
+    //----------------------------------------------------------
+    // Pobranie aktualnego czasu z RTC.
+    //----------------------------------------------------------
+
+    rtc_get_datetime(&now);
+
+    //----------------------------------------------------------
+    // Jeżeli minuta się nie zmieniła, nic nie robimy.
+    //----------------------------------------------------------
+
+    if (now.min == lastIdleMinute)
+        return;
+
+    //----------------------------------------------------------
+    // Zapamiętanie aktualnej minuty.
+    //----------------------------------------------------------
+
+    lastIdleMinute = now.min;
+
+    //----------------------------------------------------------
+    // Odświeżenie całego ekranu Idle.
+    //----------------------------------------------------------
+
+    epd.setPartialWindow(
+        0,
+        0,
+        epd.width(),
+        epd.height());
+
     epd.firstPage();
 
     do
@@ -958,16 +1046,39 @@ void Display::drawIdleScreen()
 
     epd.fillScreen(GxEPD_WHITE);
 
+        //----------------------------------------------------------
+    // Pobranie aktualnej daty i godziny z RTC.
+    //----------------------------------------------------------
+
+    datetime_t now;
+
+    rtc_get_datetime(&now);
+
     //----------------------------------------------------------
     // Data.
+    //
+    // Format:
+    //
+    // DD.MM.RRRR
     //----------------------------------------------------------
 
     epd.setFont(&FONT_STATUS);
 
-    epd.setCursor(IDLE_DATE_X,
-                  IDLE_DATE_Y);
+    epd.setCursor(
+        IDLE_DATE_X,
+        IDLE_DATE_Y);
 
-    epd.print("31.07.2026");
+    char dateText[11];
+
+    snprintf(
+        dateText,
+        sizeof(dateText),
+        "%02d.%02d.%04d",
+        now.day,
+        now.month,
+        now.year);
+
+    epd.print(dateText);
 
     //----------------------------------------------------------
     // Godzina.
@@ -983,7 +1094,16 @@ void Display::drawIdleScreen()
 
 epd.setFont(&FONT_CLOCK);
 
-String clockText = "14:37";
+char clockBuffer[6];
+
+snprintf(
+    clockBuffer,
+    sizeof(clockBuffer),
+    "%02d:%02d",
+    now.hour,
+    now.min);
+
+String clockText = clockBuffer;
 
 epd.setCursor(
     calculateCenteredX(
