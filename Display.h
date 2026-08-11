@@ -22,6 +22,7 @@
 #include "ScrollState.h"
 #include "Icons.h"
 #include "ScreenManager.h"
+#include "PolishTime.h"
 
 //--------------------------------------------------------------
 // Tryb pracy interfejsu użytkownika.
@@ -57,6 +58,14 @@ static const int TIME_HEIGHT     = 16;
 
 static const int FOOTER_TOP      = 118;
 static const int FOOTER_HEIGHT   = 10;
+
+//==============================================================
+// Deklaracja struktury czasu polskiego.
+//
+// Pełna definicja znajduje się w PolishTime.h.
+//==============================================================
+
+struct PolishTime;
 
 
 //--------------------------------------------------------------
@@ -109,6 +118,20 @@ public:
    //----------------------------------------------------------
 
 void showPlayer(const PlayerState& player);
+
+//==============================================================
+// Ustawienie zegara RTC.
+//
+// Parametr:
+//
+// time
+//      Aktualny czas polski obliczony na podstawie odpowiedzi
+//      TME z modułu UP2Stream.
+//
+//==============================================================
+
+void setRTC(
+    const PolishTime& time);
 
 //--------------------------------------------------------------
 // Wyświetlenie ekranu bezczynności.

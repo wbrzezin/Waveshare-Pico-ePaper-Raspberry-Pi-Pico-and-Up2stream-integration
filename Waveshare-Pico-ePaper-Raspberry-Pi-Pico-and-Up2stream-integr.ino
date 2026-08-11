@@ -39,6 +39,19 @@ Up2StreamClient up2stream;
 
 constexpr bool USE_TEST_DATA = true;
 
+
+//==============================================================
+// Informacja o synchronizacji RTC.
+//
+// RTC synchronizujemy tylko raz po uruchomieniu programu,
+// po otrzymaniu pierwszej poprawnej odpowiedzi TME.
+//
+// Nie wolno ustawiać RTC w każdym przebiegu loop(), ponieważ
+// zegar przestałby samodzielnie odmierzać czas.
+//==============================================================
+
+bool rtcSynchronized = false;
+
 //==============================================================
 // Bufory stanu odtwarzacza.
 //
@@ -54,14 +67,7 @@ constexpr bool USE_TEST_DATA = true;
 PlayerState previousState;
 PlayerState currentState;
 
-//==============================================================
-// Flaga testu czasu.
-//
-// Test wykonujemy tylko raz, po otrzymaniu pierwszej poprawnej
-// odpowiedzi TME.
-//==============================================================
 
-bool timeTestDone = false;
 
 //==============================================================
 // Wczytanie przykładowych danych.
@@ -89,7 +95,7 @@ void loadTestData(PlayerState& state)
 
     state.volume = 38;
 
-    state.playing = true;
+    state.playing = false;
 }
 
 //==============================================================
@@ -108,14 +114,6 @@ void setup()
     // Wykorzystywany podczas uruchamiania oraz debugowania.
     //----------------------------------------------------------
 
-    Serial.begin(115200);
-
-    Serial.println(">>> TX TEST");
-
-UP2STREAM_SERIAL.print("TME;");
-UP2STREAM_SERIAL.flush();
-
-Serial.println(">>> TX TEST END");
 
     while (!Serial)
         delay(10);
@@ -172,7 +170,7 @@ UP2STREAM_SERIAL.begin(115200);
 
 delay(1000);
 
-up2stream.query("TME;");
+
 
     
     //----------------------------------------------------------
@@ -181,6 +179,8 @@ up2stream.query("TME;");
     //----------------------------------------------------------
 
     delay(3000);
+
+    up2stream.query("TME;");
 
 //----------------------------------------------------------
 // Przygotowanie przykładowych danych.
@@ -202,6 +202,7 @@ loadTestData(currentState);
 
 ChangeFlags changes =
     StateComparer::compare(previousState, currentState);
+
 
 
 //==========================================================
@@ -251,93 +252,57 @@ void loop()
     ChangeFlags changes =
         up2stream.update(currentState);
 
-    //==============================================================
-// Test przeliczenia czasu UP2Stream na czas polski.
+//==============================================================
+// Synchronizacja RTC.
 //
-// Test wykonywany jest tylko raz - po otrzymaniu poprawnej
-// odpowiedzi TME.
+// up2stream.update() właśnie odebrało dane z UART.
 //
-// Na tym etapie wynik jest wyłącznie wypisywany przez UART.
-// RTC oraz ekran bezczynności nie są jeszcze wykorzystywane.
+// Jeżeli odpowiedź TME została odebrana i poprawnie
+// sparsowana, możemy przeliczyć ją na czas polski
+// i ustawić zegar RTC Raspberry Pi Pico.
+//
+// RTC synchronizujemy tylko raz.
+//
 //==============================================================
 
-if (!timeTestDone)
+if (!rtcSynchronized)
 {
-    const Up2StreamTime& t =
+    const Up2StreamTime& up2streamTime =
         up2stream.getTime();
 
     //----------------------------------------------------------
     // Sprawdzenie, czy otrzymaliśmy poprawną odpowiedź TME.
     //----------------------------------------------------------
 
-    if (t.valid)
+    if (up2streamTime.valid)
     {
         //------------------------------------------------------
-        // Przeliczenie czasu na czas polski.
+        // Przeliczenie czasu UTC + offset + DST
+        // na aktualny czas polski.
         //------------------------------------------------------
 
-        PolishTime polish =
-            convertToPolishTime(t);
+        PolishTime polishTime =
+            convertToPolishTime(
+                up2streamTime);
 
         //------------------------------------------------------
-        // Diagnostyka wyniku.
+        // Jeżeli wynik jest poprawny, ustaw RTC.
         //------------------------------------------------------
 
-        Serial.println(
-            "POLISH TIME TEST");
+        if (polishTime.valid)
+        {
+            display.setRTC(
+                polishTime);
 
-        //------------------------------------------------------
-        // Data.
-        //------------------------------------------------------
+            //--------------------------------------------------
+            // RTC został zsynchronizowany.
+            //
+            // Nie ustawiamy go ponownie przy kolejnych
+            // odpowiedziach UART.
+            //--------------------------------------------------
 
-        Serial.print("DATE = ");
-
-        if (polish.day < 10)
-            Serial.print('0');
-
-        Serial.print(polish.day);
-
-        Serial.print('.');
-
-        if (polish.month < 10)
-            Serial.print('0');
-
-        Serial.print(polish.month);
-
-        Serial.print('.');
-
-        Serial.println(polish.year);
-
-        //------------------------------------------------------
-        // Godzina.
-        //------------------------------------------------------
-
-        Serial.print("TIME = ");
-
-        if (polish.hour < 10)
-            Serial.print('0');
-
-        Serial.print(polish.hour);
-
-        Serial.print(':');
-
-        if (polish.minute < 10)
-            Serial.print('0');
-
-        Serial.print(polish.minute);
-
-        Serial.print(':');
-
-        if (polish.second < 10)
-            Serial.print('0');
-
-        Serial.println(polish.second);
-
-        //------------------------------------------------------
-        // Test został wykonany.
-        //------------------------------------------------------
-
-        timeTestDone = true;
+            rtcSynchronized = true;
+        }
     }
 }
 
@@ -349,18 +314,7 @@ if (!timeTestDone)
         currentState,
         changes);
 
-
-//----------------------------------------------------------
-// Aktualizacja ekranu zegara.
-//
-// Funkcja sama sprawdza, czy zmieniła się minuta.
-// Jeżeli nie - natychmiast kończy działanie.
-//
-// Dzięki temu można ją wywoływać w każdej iteracji
-// głównej pętli bez niepotrzebnego odświeżania e-paper.
-//----------------------------------------------------------
-
-display.updateIdle();     
+ 
 
     //----------------------------------------------------------
     // Ograniczenie częstotliwości odświeżania.

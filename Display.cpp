@@ -1,4 +1,3 @@
-
 //==============================================================
 // Projekt : UP2Stream Display
 // Plik    : Display.cpp
@@ -22,7 +21,9 @@
 #include "UTF8Print.h"
 #include "Theme.h"
 #include "Icons.h"
+#include "PolishTime.h"
 #include "hardware/rtc.h"
+
 
 
 //==============================================================
@@ -166,41 +167,152 @@ GxEPD2_BW<GxEPD2_213_B74, GxEPD2_213_B74::HEIGHT> epd(
         DISPLAY_BUSY_PIN));
 
 
+
 //==============================================================
-// Inicjalizacja wyświetlacza
+// Funkcja setRTC()
 //
-// Funkcja konfiguruje magistralę SPI, uruchamia sterownik
-// wyświetlacza oraz wyświetla ekran startowy.
+// Ustawia zegar sprzętowy RTC Raspberry Pi Pico.
+//
+// Parametry:
+//
+// time
+//      Czas polski obliczony na podstawie komunikatu TME.
+//
+// Funkcja nie wykonuje żadnych operacji na wyświetlaczu.
+// Jej zadaniem jest wyłącznie ustawienie RTC.
+//
 //==============================================================
+
+void Display::setRTC(
+    const PolishTime& time)
+{
+    Serial.println(
+    ">>> Display::setRTC() WYWOŁANA <<<");
+    
+    //----------------------------------------------------------
+    // Jeżeli czas nie jest poprawny, nie zmieniamy RTC.
+    //----------------------------------------------------------
+
+    if (!time.valid)
+        return;
+
+
+    //----------------------------------------------------------
+    // Przygotowanie struktury wymaganej przez RTC RP2040.
+    //----------------------------------------------------------
+
+    datetime_t dateTime =
+    {
+        .year  = static_cast<int16_t>(time.year),
+        .month = static_cast<int8_t>(time.month),
+        .day   = static_cast<int8_t>(time.day),
+
+        //------------------------------------------------------
+        // RTC RP2040:
+        //
+        // 0 = niedziela
+        // 1 = poniedziałek
+        // ...
+        // 6 = sobota
+        //
+        // Na tym etapie nie potrzebujemy jeszcze dokładnego
+        // dnia tygodnia do działania zegara, dlatego wartość
+        // może pozostać ustawiona na 0.
+        //------------------------------------------------------
+
+        .dotw   = 0,
+
+        .hour  = static_cast<int8_t>(time.hour),
+        .min   = static_cast<int8_t>(time.minute),
+        .sec   = static_cast<int8_t>(time.second)
+    };
+
+
+    //----------------------------------------------------------
+    // Ustawienie RTC.
+    //----------------------------------------------------------
+
+    rtc_set_datetime(&dateTime);
+
+
+    //----------------------------------------------------------
+    // Diagnostyka synchronizacji.
+    //----------------------------------------------------------
+
+    Serial.println(
+        "RTC: USTAWIONO CZAS POLSKI");
+
+    Serial.print("RTC DATE = ");
+
+    if (time.day < 10)
+        Serial.print('0');
+
+    Serial.print(time.day);
+
+    Serial.print('.');
+
+    if (time.month < 10)
+        Serial.print('0');
+
+    Serial.print(time.month);
+
+    Serial.print('.');
+
+    Serial.println(time.year);
+
+
+    Serial.print("RTC TIME = ");
+
+    if (time.hour < 10)
+        Serial.print('0');
+
+    Serial.print(time.hour);
+
+    Serial.print(':');
+
+    if (time.minute < 10)
+        Serial.print('0');
+
+    Serial.print(time.minute);
+
+    Serial.print(':');
+
+    if (time.second < 10)
+        Serial.print('0');
+
+    Serial.println(time.second);
+}
+
 
 bool Display::begin()
 {
 
-    //----------------------------------------------------------
-    // Inicjalizacja zegara RTC w RP2040.
-    //
-    // Na tym etapie ustawiamy zegar na czas kompilacji programu.
-    // Dzięki temu po wgraniu programu zegar rozpoczyna pracę
-    // od aktualnej daty i godziny.
-    //
-    // W przyszłości możemy dodać możliwość ustawiania zegara
-    // przez USB lub UART.
-    //----------------------------------------------------------
+//----------------------------------------------------------
+// Inicjalizacja zegara RTC w RP2040.
+//
+// RTC jest uruchamiany podczas inicjalizacji wyświetlacza,
+// ale jego czas nie jest tutaj ustawiany.
+//
+// Aktualny czas zostanie później pobrany z modułu UP2Stream
+// poprzez zapytanie TME, przeliczony na czas polski
+// i zapisany do RTC.
+//----------------------------------------------------------
 
-    rtc_init();
+rtc_init();
 
-    datetime_t initialDateTime =
-    {
-        .year  = 2026,
-        .month = 8,
-        .day   = 10,
-        .dotw  = 1,
-        .hour  = 19,
-        .min   = 37,
-        .sec   = 0
-    };
-
-    rtc_set_datetime(&initialDateTime);
+//==============================================================
+// Konfiguracja magistrali SPI wyświetlacza e-paper.
+//
+// Wyświetlacz korzysta z dodatkowego interfejsu SPI RP2040
+// utworzonego jako SPIn.
+//
+// Parametry komunikacji:
+//
+//     częstotliwość = 4 MHz
+//     kolejność bitów = MSB first
+//     tryb SPI = MODE0
+//
+//==============================================================
 
     epd.epd2.selectSPI(
         SPIn,

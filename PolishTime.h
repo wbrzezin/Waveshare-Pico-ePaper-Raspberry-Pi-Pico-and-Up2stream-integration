@@ -4,26 +4,17 @@
 //
 // Opis:
 //
-// Funkcje związane z obliczaniem czasu obowiązującego w Polsce.
-//
-// UP2Stream zwraca czas TME z własnym przesunięciem UTC.
-// W naszym przypadku nie możemy bezpośrednio użyć pola offset,
-// ponieważ UP2Stream nie uwzględnia poprawnie czasu letniego.
-//
-// Moduł oblicza więc dodatkową korektę dla Polski.
-//
-// Zimą:
-//     UTC+1
-//
-// Latem:
-//     UTC+2
+// Funkcje związane z obliczaniem aktualnego czasu obowiązującego
+// w Polsce na podstawie czasu odebranego z modułu Up2Stream.
 //
 //==============================================================
 
 #ifndef POLISHTIME_H
 #define POLISHTIME_H
 
+
 #include "Up2StreamClient.h"
+
 
 //==============================================================
 // Struktura czasu polskiego.
@@ -44,13 +35,8 @@ struct PolishTime
 
 
 //==============================================================
-// Sprawdzenie, czy podana data przypada na okres czasu letniego
-// obowiązującego w Polsce.
-//
-// Zwraca:
-//
-// true  - czas letni UTC+2
-// false - czas zimowy UTC+1
+// Sprawdzenie, czy dla podanej daty i godziny UTC obowiązuje
+// w Polsce czas letni.
 //==============================================================
 
 bool isPolishSummerTime(
@@ -61,14 +47,7 @@ bool isPolishSummerTime(
 
 
 //==============================================================
-// Konwersja czasu odebranego z UP2Stream na czas polski.
-//
-// Zakładamy, że czas TME jest czasem bazowym UP2Stream,
-// a jego standardowe przesunięcie dla naszego urządzenia
-// wynosi UTC+1.
-//
-// W okresie letnim dodajemy dodatkową godzinę.
-//
+// Konwersja czasu odebranego z Up2Stream na czas polski.
 //==============================================================
 
 PolishTime convertToPolishTime(
