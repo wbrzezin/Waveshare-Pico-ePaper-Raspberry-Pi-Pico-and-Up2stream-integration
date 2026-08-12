@@ -1112,12 +1112,41 @@ void Display::update(const PlayerState& player,
 
 void Display::drawPlayerScreen(const PlayerState& player)
 {
-    //----------------------------------------------------------
-    // Nagłówek z nazwą źródła + separator (linia oddzielająca).
-    //----------------------------------------------------------
+//----------------------------------------------------------
+// Nagłówek z nazwą źródła + separator (linia oddzielająca).
+//----------------------------------------------------------
 
-        drawHeaderArea(
-    player.source.c_str());
+//----------------------------------------------------------
+// Przygotowanie tekstu źródła.
+//
+// Dla źródła NET, jeżeli otrzymaliśmy VND, wyświetlamy:
+//
+//     NET: spotify
+//
+// Jeżeli VND nie zostało odebrane:
+//
+//     NET
+//
+// Dla pozostałych źródeł wyświetlamy wyłącznie SRC.
+//----------------------------------------------------------
+
+String sourceText =
+    player.source;
+
+if (player.source == "NET" &&
+    player.vendor.length() > 0)
+{
+    sourceText += ": ";
+    sourceText += player.vendor;
+}
+
+
+//----------------------------------------------------------
+// Nagłówek z nazwą źródła + separator.
+//----------------------------------------------------------
+
+drawHeaderArea(
+    sourceText.c_str());
     
     //----------------------------------------------------------
     // Informacje o aktualnie odtwarzanym utworze.

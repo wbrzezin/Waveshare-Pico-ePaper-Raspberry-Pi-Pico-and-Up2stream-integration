@@ -534,50 +534,107 @@ ChangeFlags Up2StreamClient::processMessage(
     }
 
 
-    //==========================================================
-    // Komenda SRC - źródło odtwarzania
-    //==========================================================
+//==========================================================
+// Komenda SRC - źródło odtwarzania
+//==========================================================
+//
+// Przykłady:
+//
+// SRC:NET;
+// SRC:LINE-IN;
+// SRC:USB;
+// SRC:BT;
+//
+// Przy każdej zmianie źródła kasujemy poprzednią informację
+// VND. Nie wysyłamy zapytania VND; do Up2Stream.
+//
+// Jeżeli Up2Stream następnie prześle:
+//
+// VND:Spotify;
+//
+// informacja zostanie zapisana osobno przez parser VND.
+//==========================================================
 
-    //----------------------------------------------------------
-    // Przykłady:
-    //
-    // SRC:NET;
-    // SRC:LINE-IN;
-    // SRC:USB;
-    // SRC:BT;
-    //----------------------------------------------------------
+if (strncmp(message, "SRC:", 4) == 0)
+{
+    //------------------------------------------------------
+    // Zapisz nazwę źródła.
+    //------------------------------------------------------
 
-    if (strncmp(message, "SRC:", 4) == 0)
+    player.source =
+        String(message + 4);
+
+
+    //------------------------------------------------------
+    // Usuń końcowy znak ';'.
+    //------------------------------------------------------
+
+    if (player.source.endsWith(";"))
     {
-        //------------------------------------------------------
-        // Zapisz nazwę źródła.
-        //
-        // Pomijamy pierwsze cztery znaki:
-        //
-        // S R C :
-        //
-        // Pozostała część zawiera właściwą wartość.
-        //------------------------------------------------------
-
-        player.source = String(message + 4);
-
-        //------------------------------------------------------
-        // Usuń końcowy znak ';', ponieważ nie jest częścią
-        // nazwy źródła.
-        //------------------------------------------------------
-
-        if (player.source.endsWith(";"))
-        {
-            player.source.remove(
-                player.source.length() - 1);
-        }
-
-        //------------------------------------------------------
-        // Poinformuj wyświetlacz o zmianie źródła.
-        //------------------------------------------------------
-
-        return ChangeFlags::Source;
+        player.source.remove(
+            player.source.length() - 1);
     }
+
+
+    //------------------------------------------------------
+    // Nowe źródło oznacza nowy kontekst VND.
+    //
+    // Nie wolno pozostawić informacji związanej z
+    // poprzednim źródłem.
+    //------------------------------------------------------
+
+    player.vendor = "";
+
+
+    //------------------------------------------------------
+    // Poinformuj wyświetlacz o zmianie źródła.
+    //------------------------------------------------------
+
+    return ChangeFlags::Source;
+}
+
+
+//==========================================================
+// Komenda VND - dostawca / usługa źródła
+//==========================================================
+//
+// Przykład:
+//
+// VND:Spotify;
+//
+// Up2Stream może przesłać tę informację spontanicznie.
+// Nie wysyłamy do urządzenia zapytania VND;.
+//
+// Informacja jest zapisywana w PlayerState::vendor.
+//==========================================================
+
+if (strncmp(message, "VND:", 4) == 0)
+{
+    //------------------------------------------------------
+    // Zapisz nazwę dostawcy/usługi.
+    //------------------------------------------------------
+
+    player.vendor =
+        String(message + 4);
+
+
+    //------------------------------------------------------
+    // Usuń końcowy znak ';'.
+    //------------------------------------------------------
+
+    if (player.vendor.endsWith(";"))
+    {
+        player.vendor.remove(
+            player.vendor.length() - 1);
+    }
+
+
+    //------------------------------------------------------
+    // Poinformuj wyświetlacz o zmianie informacji VND.
+    //------------------------------------------------------
+
+    return ChangeFlags::Vendor;
+}
 
 //==========================================================
 // Komenda TIT - tytuł utworu

@@ -40,6 +40,8 @@ enum class ChangeFlags : uint16_t
     PlayState   = 0x0080,
 
     Mute        = 0x0100,
+
+    Vendor    = 1 << 6
 };
 
 
