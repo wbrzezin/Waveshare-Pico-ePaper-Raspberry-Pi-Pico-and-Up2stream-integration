@@ -182,6 +182,22 @@ delay(1000);
 
     up2stream.query("TME;");
 
+//--------------------------------------------------------------
+// Pobranie aktualnego źródła odtwarzania.
+//
+// Up2Stream odpowie komunikatem:
+//
+//     SRC:NET;
+//     SRC:BT;
+//     SRC:LINE-IN;
+//     itd.
+//
+// Odpowiedź zostanie odebrana i przetworzona podczas
+// kolejnego wywołania up2stream.update().
+//--------------------------------------------------------------
+
+up2stream.query("SRC;");
+
 //----------------------------------------------------------
 // Przygotowanie przykładowych danych.
 //
