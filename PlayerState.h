@@ -315,6 +315,22 @@ bool muted;
 
 bool audioActive;
 
+//==============================================================
+// Stan zasilania / pracy modułu Up2Stream.
+//
+// false - urządzenie pracuje normalnie
+// true  - urządzenie znajduje się w trybie standby
+//
+// Stan ten jest niezależny od:
+// - playing,
+// - mute,
+// - ekranu zegara.
+//
+//==============================================================
+
+bool standby = false;
+
+
     //==========================================================
     // Stan odtwarzacza
     //==========================================================
@@ -327,6 +343,9 @@ bool audioActive;
     //----------------------------------------------------------
 
     bool playing;
+
+
+    
 };
 
 #endif

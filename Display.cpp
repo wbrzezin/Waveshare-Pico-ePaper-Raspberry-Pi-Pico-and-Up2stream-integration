@@ -733,6 +733,41 @@ void Display::showIdle()
 }
 
 //==============================================================
+// Funkcja clearScreen()
+//
+// Całkowicie czyści ekran e-paper.
+//
+// Po wykonaniu funkcji wyświetlacz pozostaje biały.
+//==============================================================
+
+void Display::clearScreen()
+{
+    //----------------------------------------------------------
+    // Ustawienie całego ekranu jako obszaru odświeżania.
+    //----------------------------------------------------------
+
+    epd.setFullWindow();
+
+
+    //----------------------------------------------------------
+    // Rozpoczęcie pełnego odświeżania.
+    //----------------------------------------------------------
+
+    epd.firstPage();
+
+    do
+    {
+        //------------------------------------------------------
+        // Wypełnienie całego ekranu kolorem białym.
+        //------------------------------------------------------
+
+        epd.fillScreen(GxEPD_WHITE);
+
+    }
+    while (epd.nextPage());
+}
+
+//==============================================================
 // Funkcja updateIdle()
 //
 // Sprawdza aktualny czas RTC.
@@ -876,6 +911,82 @@ void Display::update(const PlayerState& player,
                      ChangeFlags changes)
 
 {
+
+    //==========================================================
+    // Obsługa trybu standby.
+    //
+    // SYS:STANDBY powoduje wyczyszczenie całego wyświetlacza.
+    //
+    // W trybie standby ignorujemy pozostałe zmiany stanu
+    // odtwarzacza. Dzięki temu komunikaty takie jak MUT, VOL,
+    // ELP itd. nie spowodują ponownego narysowania ekranu.
+    //==========================================================
+
+    if (player.standby)
+    {
+        //------------------------------------------------------
+        // Jeżeli właśnie weszliśmy w standby, wyczyść ekran.
+        //------------------------------------------------------
+
+        if ((changes & ChangeFlags::Standby)
+            != ChangeFlags::None)
+        {
+            clearScreen();
+
+            //--------------------------------------------------
+            // Zapamiętujemy stan ekranu.
+            //
+            // Ekran nie jest ani odtwarzaczem, ani zegarem.
+            //--------------------------------------------------
+
+            idleScreenActive = false;
+        }
+
+        //------------------------------------------------------
+        // W standby niczego więcej nie rysujemy.
+        //------------------------------------------------------
+
+        return;
+    }
+
+
+
+//==========================================================
+// Wyjście z trybu standby.
+//
+// Po SYS:ON nie rysujemy jeszcze ekranu na podstawie
+// starego PlayerState.
+//
+// Zamiast tego pozwalamy głównej pętli ponownie pobrać
+// aktualne źródło z Up2Stream.
+//==========================================================
+
+if ((changes & ChangeFlags::Standby)
+    != ChangeFlags::None)
+{
+    if (!player.standby)
+    {
+        //------------------------------------------------------
+        // Urządzenie wróciło do normalnej pracy.
+        //------------------------------------------------------
+
+        idleScreenActive = false;
+
+        lastActivityMillis = millis();
+
+        //------------------------------------------------------
+        // Nie wyświetlamy jeszcze ekranu.
+        //
+        // Aktualny stan źródła zostanie pobrany przez:
+        //
+        //     SRC;
+        //
+        //------------------------------------------------------
+
+        return;
+    }
+}
+
     //----------------------------------------------------------
     // Obsługa przełączania pomiędzy ekranem odtwarzacza
     // a ekranem zegara.

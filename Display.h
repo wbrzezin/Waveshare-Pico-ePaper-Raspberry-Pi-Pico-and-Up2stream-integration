@@ -73,7 +73,7 @@ struct PolishTime;
 //
 // Odpowiada za obsługę wyświetlacza e-paper oraz rysowanie
 // interfejsu użytkownika odtwarzacza UP2Stream.
-//
+//sterownik
 // Zadania klasy:
 // - inicjalizacja wyświetlacza,
 // - wyświetlenie ekranu startowego,
@@ -179,6 +179,15 @@ void showIdle();
     // odświeżanie wybranych fragmentów ekranu.
     //----------------------------------------------------------
     void scrollText();
+
+//--------------------------------------------------------------
+// Wyczyść cały ekran e-paper.
+//
+// Funkcja używana podczas przejścia modułu Up2Stream
+// w tryb standby.
+//--------------------------------------------------------------
+
+void clearScreen();
 
 private:
 

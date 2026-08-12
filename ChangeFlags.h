@@ -41,7 +41,9 @@ enum class ChangeFlags : uint16_t
 
     Mute        = 0x0100,
 
-    Vendor    = 1 << 6
+    Vendor      = 0x0200,
+
+    Standby     = 0x0400
 };
 
 

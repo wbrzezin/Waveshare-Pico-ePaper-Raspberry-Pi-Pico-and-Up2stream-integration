@@ -533,6 +533,52 @@ ChangeFlags Up2StreamClient::processMessage(
         return ChangeFlags::Volume;
     }
 
+//==========================================================
+// Komenda SYS - stan pracy modułu Up2Stream
+//==========================================================
+//
+// Przykłady:
+//
+// SYS:ON;
+// SYS:STANDBY;
+//
+// SYS:STANDBY oznacza przejście urządzenia w tryb
+// czuwania.
+//
+// SYS:ON oznacza powrót urządzenia do normalnej pracy.
+//
+// Stan SYS jest niezależny od PLA oraz MUT.
+//==========================================================
+
+if (strncmp(message, "SYS:", 4) == 0)
+{
+    //------------------------------------------------------
+    // Sprawdzenie stanu urządzenia.
+    //------------------------------------------------------
+
+    if (strncmp(message + 4, "STANDBY", 7) == 0)
+    {
+        //--------------------------------------------------
+        // Up2Stream przeszedł w tryb standby.
+        //--------------------------------------------------
+
+        player.standby = true;
+    }
+    else if (strncmp(message + 4, "ON", 2) == 0)
+    {
+        //--------------------------------------------------
+        // Up2Stream powrócił do normalnej pracy.
+        //--------------------------------------------------
+
+        player.standby = false;
+    }
+
+    //------------------------------------------------------
+    // Poinformuj pozostałą część programu o zmianie stanu.
+    //------------------------------------------------------
+
+    return ChangeFlags::Standby;
+}
 
 //==========================================================
 // Komenda SRC - źródło odtwarzania

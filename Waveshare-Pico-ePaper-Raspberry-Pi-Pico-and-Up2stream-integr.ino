@@ -220,6 +220,25 @@ ChangeFlags changes =
     StateComparer::compare(previousState, currentState);
 
 
+//==============================================================
+// Wyjście z trybu standby.
+//
+// Po SYS:ON ponownie pytamy Up2Stream o aktualne źródło.
+//
+// Nie pytamy o VND - Up2Stream wysyła VND spontanicznie.
+//==============================================================
+
+if ((changes & ChangeFlags::Standby)
+    != ChangeFlags::None &&
+    !currentState.standby)
+{
+    //----------------------------------------------------------
+    // Pobranie aktualnego źródła.
+    //----------------------------------------------------------
+
+    up2stream.query("SRC;");
+}
+
 
 //==========================================================
 // Wyświetlenie aktualnego stanu odtwarzacza.
