@@ -95,7 +95,7 @@ void loadTestData(PlayerState& state)
 
     state.volume = 38;
 
-    state.playing = false;
+    state.playing = true;
 }
 
 //==============================================================

@@ -874,43 +874,64 @@ epd.fillRect(
 
 void Display::update(const PlayerState& player,
                      ChangeFlags changes)
+
 {
     //----------------------------------------------------------
-    // Obsługa ekranu bezczynności.
-   //-----------------------------------------------------------
-
-       //----------------------------------------------------------
-    // Obsługa ekranu bezczynności.
+    // Obsługa przełączania pomiędzy ekranem odtwarzacza
+    // a ekranem zegara.
     //
-    // Ekran zegara jest używany tylko wtedy, gdy odtwarzanie
-    // jest zatrzymane lub wstrzymane.
+    // Zasada działania:
     //
-    // Podczas odtwarzania muzyki ekran odtwarzacza pozostaje
-    // aktywny niezależnie od tego, jak długo nie zmieniają się
-    // informacje o utworze.
+    // PLAY:
+    //     zawsze ekran odtwarzacza.
+    //
+    // PAUSE / STOP:
+    //     ekran odtwarzacza pozostaje przez IDLE_TIMEOUT,
+    //     następnie przełączamy się na ekran zegara.
+    //
+    // PLAY podczas wyświetlania zegara:
+    //     natychmiast wracamy do ekranu odtwarzacza.
+    //
+    // Aktualizacja zegara odbywa się przez updateIdle().
     //----------------------------------------------------------
 
-    ChangeFlags activityChanges =
-        changes &
-        (
-            ChangeFlags::Source |
-            ChangeFlags::Artist |
-            ChangeFlags::Title |
-            ChangeFlags::Volume |
-            ChangeFlags::PlayState |
-            ChangeFlags::Mute
-        );
 
     //----------------------------------------------------------
-    // Jeżeli wystąpiła istotna zmiana, zapamiętaj jej moment.
+    // Sprawdź, czy zmienił się stan PLAY / PAUSE.
+    //
+    // Jest to podstawowy sygnał sterujący przełączaniem
+    // pomiędzy ekranami.
     //----------------------------------------------------------
 
-    if (activityChanges != ChangeFlags::None)
+    bool playStateChanged =
+        (changes & ChangeFlags::PlayState)
+        != ChangeFlags::None;
+
+
+    //----------------------------------------------------------
+    // Jeżeli zmienił się stan odtwarzania, zapamiętaj moment
+    // tej zmiany.
+    //
+    // Jest to początek odliczania IDLE_TIMEOUT po przejściu
+    // z PLAY do PAUSE.
+    //----------------------------------------------------------
+
+    if (playStateChanged)
     {
         lastActivityMillis = millis();
+    }
 
+
+    //----------------------------------------------------------
+    // PLAY
+    //
+    // Podczas odtwarzania zawsze pokazujemy ekran odtwarzacza.
+    //----------------------------------------------------------
+
+    if (player.playing)
+    {
         //------------------------------------------------------
-        // Jeżeli aktualnie wyświetlany jest ekran zegara,
+        // Jeżeli zegar był aktualnie wyświetlany, natychmiast
         // wracamy do ekranu odtwarzacza.
         //------------------------------------------------------
 
@@ -919,78 +940,56 @@ void Display::update(const PlayerState& player,
             idleScreenActive = false;
 
             Serial.println(
-                "DISPLAY: POWROT DO EKRANU ODTWARZACZA");
-
-            showPlayer(player);
-
-            return;
-        }
-    }
-
-    //----------------------------------------------------------
-    // Jeżeli muzyka jest aktualnie odtwarzana, ekran zegara
-    // nie może zostać uruchomiony.
-    //
-    // Jest to najważniejszy warunek całej obsługi bezczynności.
-    //----------------------------------------------------------
-
-    if (player.playing)
-    {
-        //------------------------------------------------------
-        // Zabezpieczenie:
-        //
-        // Jeżeli z jakiegoś powodu ekran zegara był aktywny
-        // podczas odtwarzania, natychmiast wracamy do ekranu
-        // odtwarzacza.
-        //------------------------------------------------------
-
-        if (idleScreenActive)
-        {
-            idleScreenActive = false;
-
-            Serial.println(
-                "DISPLAY: PLAY - POWROT DO EKRANU ODTWARZACZA");
+                "DISPLAY: PLAY -> EKRAN ODTWARZACZA");
 
             showPlayer(player);
 
             return;
         }
 
+
         //------------------------------------------------------
-        // Muzyka gra, więc nie sprawdzamy tutaj timeoutu
-        // bezczynności.
+        // Jeżeli już jesteśmy na ekranie odtwarzacza, niczego
+        // nie zmieniamy w związku z mechanizmem Idle.
         //------------------------------------------------------
     }
+
+
+    //----------------------------------------------------------
+    // PAUSE / STOP
+    //----------------------------------------------------------
+
     else
     {
         //------------------------------------------------------
-        // Muzyka nie jest odtwarzana.
-        //
-        // Jeżeli ekran zegara jest już aktywny, pozostawiamy
-        // go bez zmian.
+        // Jeżeli zegar jest już aktywny, pozostawiamy go
+        // aktywnego, ale aktualizujemy jego zawartość z RTC.
         //------------------------------------------------------
 
         if (idleScreenActive)
         {
+            updateIdle();
+
             return;
         }
 
+
         //------------------------------------------------------
-        // Muzyka jest zatrzymana lub wstrzymana.
+        // Jesteśmy jeszcze na ekranie odtwarzacza.
         //
-        // Sprawdzamy, czy minął czas bezczynności.
-        //
-        // Na obecnym etapie:
-        //
-        // IDLE_TIMEOUT = 5000 ms = 5 sekund.
+        // Sprawdź, czy minął czas bezczynności.
         //------------------------------------------------------
 
         if (millis() - lastActivityMillis >= IDLE_TIMEOUT)
         {
+            //--------------------------------------------------
+            // Przełączenie na ekran zegara.
+            //--------------------------------------------------
+
             idleScreenActive = true;
 
             Serial.println(
-                "DISPLAY: PRZEJSCIE DO EKRANU ZEGARA");
+                "DISPLAY: PAUSE -> EKRAN ZEGARA");
 
             showIdle();
 
@@ -998,6 +997,16 @@ void Display::update(const PlayerState& player,
         }
     }
 
+
+    //----------------------------------------------------------
+    // Od tego miejsca pozostaje dotychczasowa obsługa ekranu
+    // odtwarzacza:
+    //
+    // - inicjalizacja przewijania tytułu,
+    // - inicjalizacja przewijania wykonawcy,
+    // - aktualizacja stron tekstu,
+    // - częściowe odświeżenie ekranu.
+    //----------------------------------------------------------
 
     //----------------------------------------------------------
     // Jeżeli zmienił się tytuł utworu,
