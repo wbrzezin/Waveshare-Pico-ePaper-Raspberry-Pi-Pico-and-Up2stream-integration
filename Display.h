@@ -31,37 +31,6 @@
 
 
 
-//==============================================================//-----------------------------------------------//
-// Obszary ekranu                                             // Screen areas                                 //
-//==============================================================//-----------------------------------------------//
-
-static const int HEADER_TOP      = 0;
-static const int HEADER_HEIGHT   = 24;
-
-static const int TITLE_TOP       = 26;
-static const int TITLE_HEIGHT    = 36;
-
-static const int PROGRESS_TOP    = 92;
-static const int PROGRESS_HEIGHT = 12;
-
-static const int TIME_TOP        = 103;
-static const int TIME_HEIGHT     = 16;
-
-static const int FOOTER_TOP      = 118;
-static const int FOOTER_HEIGHT   = 10;
-
-
-//==============================================================//-----------------------------------------------//
-// Deklaracja struktury czasu polskiego.                      // Forward declaration of the Polish time       //
-//                                                              // structure.                                    //
-//                                                              //                                               //
-// Pełna definicja znajduje się w PolishTime.h.                // The full definition is provided in            //
-//                                                              // PolishTime.h.                                //
-//==============================================================//-----------------------------------------------//
-
-struct PolishTime;
-
-
 //--------------------------------------------------------------//-----------------------------------------------//
 // Klasa Display                                               // Display class                                //
 //                                                              //                                               //
@@ -181,23 +150,13 @@ public:
                 ChangeFlags changes);
 
 
-    //----------------------------------------------------------//-----------------------------------------------//
-    // Aktualizacja elementów dynamicznych.                    // Update dynamic elements.                     //
-//                                                              //                                               //
-// Funkcja obsługuje elementy interfejsu wymagające okresowej  // The function handles interface elements that   //
-// aktualizacji, takie jak przewijanie długich nazw.           // require periodic updates, such as scrolling   //
-//                                                              // long names.                                   //
-//----------------------------------------------------------//-----------------------------------------------//
-
-    void scrollText();
-
 
     //----------------------------------------------------------//-----------------------------------------------//
     // Wyczyść cały ekran e-paper.                             // Clear the entire e-paper display.            //
-//                                                              //                                               //
-// Funkcja używana podczas przejścia modułu Up2Stream         // The function is used when the Up2Stream module //
-// w tryb standby.                                             // enters standby mode.                         //
-//----------------------------------------------------------//-----------------------------------------------//
+    //                                                              //                                               //
+    // Funkcja używana podczas przejścia modułu Up2Stream         // The function is used when the Up2Stream module //
+    // w tryb standby.                                             // enters standby mode.                         //
+    //----------------------------------------------------------//-----------------------------------------------//
 
     void clearScreen();
 

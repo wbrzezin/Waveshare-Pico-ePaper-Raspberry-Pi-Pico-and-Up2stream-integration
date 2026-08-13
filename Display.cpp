@@ -17,7 +17,6 @@
 #include "HardwareConfig.h"
 #include <SPI.h>
 #include <GxEPD2_BW.h>
-#include <GxEPD2_3C.h>
 #include "UTF8Print.h"
 #include "Theme.h"
 #include "PolishTime.h"
