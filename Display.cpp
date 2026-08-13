@@ -1621,45 +1621,6 @@ int Display::calculateCenteredX(
     return areaX + (areaWidth - width) / 2;
 }
 
-//==============================================================
-// Funkcja scorePage()                                      // Function scorePage()                          //
-//
-// Oblicza ocenę jakości podziału tekstu.                   // Calculates the quality score of a text page split. //
-//
-// Im lepiej wykorzystana jest szerokość strony,            // The better the page width is utilized,        //
-// tym wyższy wynik.                                        // the higher the score.                         //
-//
-// W kolejnych etapach funkcja zostanie rozszerzona o:      // In later stages, the function will be extended with: //
-// - karę za pozostawienie bardzo krótkiej następnej strony, // - a penalty for leaving a very short next page, //
-// - karę za rozpoczynanie strony od krótkich spójników,    // - a penalty for starting a page with short conjunctions, //
-// - premię za bardziej naturalny podział tekstu.           // - a bonus for a more natural text split.      //
-//
-// Parametry:                                               // Parameters:                                   //
-//
-// page                                                     // page                                          //
-// Kandydat na bieżącą stronę.                              // Candidate for the current page.               //
-//
-// remaining                                                // remaining                                     //
-// Pozostała część tekstu.                                  // Remaining part of the text.                   //
-//
-// areaWidth                                                // areaWidth                                     //
-// Maksymalna szerokość strony w pikselach.                 // Maximum page width in pixels.                 //
-//
-// Zwraca:                                                  // Returns:                                      //
-//
-// Wynik oceny. Im większa wartość, tym lepszy podział.     // Score. The higher the value, the better the split. //
-//
-//==============================================================
-int Display::scorePage(const String& page,
-                       const String& remaining,
-                       int areaWidth)
-{
-    (void)remaining;
-
-    uint16_t width = measureTextWidth(page, &FONT_TITLE);
-
-    return (100 * width) / areaWidth;
-}
 
 
 //==============================================================

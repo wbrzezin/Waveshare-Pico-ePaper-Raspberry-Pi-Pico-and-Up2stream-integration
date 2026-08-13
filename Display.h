@@ -357,10 +357,6 @@ private:
         int areaWidth);
 
 
-    int scorePage(const String& page,
-                  const String& remaining,
-                  int areaWidth);
-
 
     //----------------------------------------------------------//-----------------------------------------------//
     // Wyznaczenie fragmentu tekstu mieszczącego się w          // Determine the text fragment that fits within  //
