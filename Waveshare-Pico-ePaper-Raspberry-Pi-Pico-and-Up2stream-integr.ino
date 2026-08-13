@@ -103,7 +103,6 @@ PlayerState currentState;
 
 void loadTestData(PlayerState& state)
 {
-    Serial.println("!!! loadTestData() !!!");
 
     state.source = "--";
 
@@ -141,7 +140,6 @@ void setup()
     while (!Serial)
         delay(10);
 
-    Serial.println("Start");
 
 
     //----------------------------------------------------------//-----------------------------------------------//
@@ -189,11 +187,12 @@ void setup()
 
 
 //==============================================================//-----------------------------------------------//
-// Pobranie aktualnego czasu z UP2Stream.                      // Request the current time from Up2Stream.    //
+// Pierwsze zapytanie o aktualny czas z Up2Stream.             // Initial request for the current time from    //
+//                                                              // Up2Stream.                                    //
 //                                                              //                                               //
-// Jest to tymczasowe zapytanie testowe.                       // This is a temporary test query.              //
-// W docelowej wersji będzie wysyłane przez mechanizm          // In the final version it will be sent by the  //
-// synchronizacji zegara.                                     // clock synchronization mechanism.             //
+// Zapytanie inicjuje pierwszą synchronizację RTC.              // The request initiates the first RTC          //
+// Kolejne zapytania są wysyłane okresowo w funkcji loop().    // synchronization. Further requests are sent  //
+//                                                              // periodically from loop().                     //
 //==============================================================//-----------------------------------------------//
 
     delay(1000);

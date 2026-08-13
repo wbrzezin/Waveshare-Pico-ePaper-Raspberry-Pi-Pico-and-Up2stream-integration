@@ -1259,81 +1259,9 @@ if (strncmp(message, "ART:", 4) == 0)
 
             up2streamTime.valid = true;
 
-            Serial.println(
-                "TME PARSED OK");
 
-            //------------------------------------------------------//-----------------------------------------------//
-            // Data.                                                   // Date.                                       //
-            //------------------------------------------------------//-----------------------------------------------//
-
-            Serial.print("TME DATE = ");
-
-            if (day < 10)
-                Serial.print('0');
-
-            Serial.print(day);
-
-            Serial.print('.');
-
-            if (month < 10)
-                Serial.print('0');
-
-            Serial.print(month);
-
-            Serial.print('.');
-
-            Serial.println(year);
-
-            //------------------------------------------------------//-----------------------------------------------//
-            // Godzina.                                                // Time.                                       //
-            //------------------------------------------------------//-----------------------------------------------//
-
-            Serial.print("TME TIME = ");
-
-            if (hour < 10)
-                Serial.print('0');
-
-            Serial.print(hour);
-
-            Serial.print(':');
-
-            if (minute < 10)
-                Serial.print('0');
-
-            Serial.print(minute);
-
-            Serial.print(':');
-
-            if (second < 10)
-                Serial.print('0');
-
-            Serial.println(second);
-
-            //------------------------------------------------------//-----------------------------------------------//
-            // Przesunięcie UTC.                                       // UTC offset.                                 //
-            //------------------------------------------------------//-----------------------------------------------//
-
-            Serial.print("TME OFFSET = ");
-
-            if (offset >= 0)
-                Serial.print('+');
-
-            Serial.println(offset);
         }
-        else
-        {
-            //------------------------------------------------------//-----------------------------------------------//
-            // Nie udało się poprawnie sparsować komunikatu.           // The message could not be parsed correctly.  //
-            //------------------------------------------------------//-----------------------------------------------//
-
-            Serial.print(
-                "TME PARSE ERROR: [");
-
-            Serial.print(message);
-
-            Serial.println(']');
-        }
-
+     
         //------------------------------------------------------//-----------------------------------------------//
         // TME nie zmienia jeszcze PlayerState.                    // TME does not modify PlayerState here.       //
         //------------------------------------------------------//-----------------------------------------------//
