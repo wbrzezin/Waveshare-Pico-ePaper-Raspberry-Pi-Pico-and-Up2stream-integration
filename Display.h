@@ -490,30 +490,10 @@ private:
     void drawVolume(int volume);
 
 
-    //==========================================================//-----------------------------------------------//
-    // Bufor aktualnie wyświetlanych danych                    // Buffer containing currently displayed data   //
-//                                                              //                                               //
-// Zmienne przechowują wartości, które zostały ostatnio        // The variables store values that were most      //
-// narysowane na ekranie. Dzięki temu możliwe będzie            // recently drawn on the display. This makes it  //
-// wykonywanie częściowego odświeżania wyświetlacza              // possible to perform partial display refreshes //
-// wyłącznie dla elementów, które uległy zmianie.               // only for elements that have changed.          //
-//==========================================================//-----------------------------------------------//
-
-
-    //----------------------------------------------------------//-----------------------------------------------//
-    // Aktualnie wyświetlane źródło dźwięku.                   // Currently displayed audio source.             //
-//----------------------------------------------------------//-----------------------------------------------//
-
-    const char* currentSource = nullptr;
-
-
-    int currentVolume = -1;
-    int currentProgress = -1;
-
 
     //----------------------------------------------------------//-----------------------------------------------//
     // Stan przewijania tytułu.                                // Title scrolling state.                       //
-//----------------------------------------------------------//-----------------------------------------------//
+    //----------------------------------------------------------//-----------------------------------------------//
 
     ScrollState titleScroll;
 

@@ -41,14 +41,41 @@ constexpr bool USE_TEST_DATA = true;
 //==============================================================//-----------------------------------------------//
 // Informacja o synchronizacji RTC.                            // RTC synchronization status.                  //
 //                                                              //                                               //
-// RTC synchronizujemy tylko raz po uruchomieniu programu,    // RTC is synchronized only once after startup, //
-// po otrzymaniu pierwszej poprawnej odpowiedzi TME.           // after receiving the first valid TME response.//
+// RTC jest synchronizowany po uruchomieniu programu oraz       // The RTC is synchronized after startup and      //
+// okresowo podczas jego pracy.                                // periodically during operation.               //
 //                                                              //                                               //
-// Nie wolno ustawiać RTC w każdym przebiegu loop(), ponieważ // The RTC must not be set during every loop(),   //
-// zegar przestałby samodzielnie odmierzać czas.               // otherwise the clock would not keep running.   //
+// Zmienna informuje, czy przynajmniej jedna poprawna            // The variable indicates whether at least one   //
+// synchronizacja została już wykonana.                        // valid synchronization has been completed.      //
 //==============================================================//-----------------------------------------------//
 
 bool rtcSynchronized = false;
+
+
+//------------------------------------------------------//-----------------------------------------------//
+// Ostatni czas użyty do synchronizacji RTC.           // Last time used to synchronize the RTC.         //
+//                                                     //                                               //
+// Wartości -1 oznaczają, że RTC nie został jeszcze   // Values of -1 indicate that the RTC has not    //
+// zsynchronizowany.                                   // been synchronized yet.                         //
+//------------------------------------------------------//-----------------------------------------------//
+
+int lastRTCSyncYear   = -1;
+int lastRTCSyncMonth  = -1;
+int lastRTCSyncDay    = -1;
+int lastRTCSyncHour   = -1;
+int lastRTCSyncMinute = -1;
+int lastRTCSyncSecond = -1;
+
+//==============================================================//-----------------------------------------------//
+// Okres synchronizacji RTC.                                  // RTC synchronization interval.                  //
+//                                                              //                                               //
+// RTC będzie okresowo synchronizowany z czasem otrzymanym     // The RTC will be periodically synchronized      //
+// z modułu Up2Stream.                                         // with the time received from the Up2Stream      //
+//                                                              // module.                                       //
+//==============================================================//-----------------------------------------------//
+
+constexpr uint32_t RTC_SYNC_INTERVAL_MS = 60UL * 10UL * 1000UL;
+
+uint32_t lastRTCSyncRequest = 0;
 
 
 //==============================================================//-----------------------------------------------//
@@ -171,6 +198,7 @@ void setup()
 
     delay(1000);
 
+    up2stream.query("STA;");
 
     //----------------------------------------------------------//-----------------------------------------------//
     // Krótkie opóźnienie umożliwiające obejrzenie ekranu       // Short delay allowing the startup screen to   //
@@ -180,6 +208,8 @@ void setup()
     delay(3000);
 
     up2stream.query("TME;");
+
+    lastRTCSyncRequest = millis();
 
 
 //--------------------------------------------------------------//-----------------------------------------------//
@@ -279,68 +309,100 @@ void loop()
         //------------------------------------------------------//-----------------------------------------------//
 
         up2stream.query("SRC;");
+
+
     }
 
 
 //==============================================================//-----------------------------------------------//
-// Synchronizacja RTC.                                       // RTC synchronization.                         //
-//                                                              //                                               //
-// up2stream.update() właśnie odebrało dane z UART.            // up2stream.update() has just received data     //
-//                                                              // from UART.                                    //
-//                                                              //                                               //
-// Jeżeli odpowiedź TME została odebrana i poprawnie           // If a TME response was received and parsed     //
-// sparsowana, możemy przeliczyć ją na czas polski             // successfully, it can be converted to Polish  //
-// i ustawić zegar RTC Raspberry Pi Pico.                     // local time and used to set the Raspberry Pi    //
-//                                                              // Pico RTC.                                     //
-//                                                              //                                               //
-// RTC synchronizujemy tylko raz.                             // RTC is synchronized only once.                //
-//==============================================================//-----------------------------------------------//
+// Synchronizacja RTC.                                         // RTC synchronization.                          //
+//                                                              //
+// Odpowiedź TME jest przeliczana na czas polski i używana      // The TME response is converted to Polish time   //
+// do ustawienia zegara RTC Raspberry Pi Pico.                  // and used to set the Raspberry Pi Pico RTC.     //
+//                                                              //
+// Pierwsza synchronizacja odbywa się po uruchomieniu,          // The first synchronization takes place after    //
+// a kolejne są wykonywane okresowo.                            // startup, with subsequent synchronizations       //
+//                                                              // performed periodically.                        //
+//==============================================================//
 
-    if (!rtcSynchronized)
+const Up2StreamTime& up2streamTime =
+    up2stream.getTime();
+
+if (up2streamTime.valid)
+{
+    //------------------------------------------------------//-----------------------------------------------//
+    // Sprawdź, czy otrzymany czas różni się od czasu      // Check whether the received time differs from  //
+    // użytego podczas ostatniej synchronizacji.           // the time used for the last synchronization.    //
+    //------------------------------------------------------//-----------------------------------------------//
+
+    bool newTime =
+        !rtcSynchronized ||
+        up2streamTime.year   != lastRTCSyncYear ||
+        up2streamTime.month  != lastRTCSyncMonth ||
+        up2streamTime.day    != lastRTCSyncDay ||
+        up2streamTime.hour   != lastRTCSyncHour ||
+        up2streamTime.minute != lastRTCSyncMinute ||
+        up2streamTime.second != lastRTCSyncSecond;
+
+
+    //------------------------------------------------------//-----------------------------------------------//
+    // Synchronizuj RTC tylko po otrzymaniu nowego czasu.   // Synchronize the RTC only after receiving new    //
+    //                                                     // time data.                                     //
+    //------------------------------------------------------//-----------------------------------------------//
+
+    if (newTime)
     {
-        const Up2StreamTime& up2streamTime =
-            up2stream.getTime();
+        PolishTime polishTime =
+            convertToPolishTime(
+                up2streamTime);
 
-
-        //------------------------------------------------------//-----------------------------------------------//
-        // Sprawdzenie, czy otrzymaliśmy poprawną odpowiedź    // Check whether a valid TME response was         //
-        // TME.                                               // received.                                      //
-        //------------------------------------------------------//-----------------------------------------------//
-
-        if (up2streamTime.valid)
+        if (polishTime.valid)
         {
-            //--------------------------------------------------//-----------------------------------------------//
-            // Przeliczenie czasu UTC + offset + DST             // Convert UTC + offset + DST                    //
-            // na aktualny czas polski.                         // to the current Polish local time.             //
-            //--------------------------------------------------//-----------------------------------------------//
+            display.setRTC(
+                polishTime);
 
-            PolishTime polishTime =
-                convertToPolishTime(
-                    up2streamTime);
+            //------------------------------------------------------//-----------------------------------------------//
+            // Zapamiętaj czas wykorzystany do synchronizacji.       // Remember the time used for synchronization.  //
+            //------------------------------------------------------//-----------------------------------------------//
 
+            lastRTCSyncYear =
+                up2streamTime.year;
 
-            //--------------------------------------------------//-----------------------------------------------//
-            // Jeżeli wynik jest poprawny, ustaw RTC.           // If the result is valid, set the RTC.          //
-            //--------------------------------------------------//-----------------------------------------------//
+            lastRTCSyncMonth =
+                up2streamTime.month;
 
-            if (polishTime.valid)
-            {
-                display.setRTC(
-                    polishTime);
+            lastRTCSyncDay =
+                up2streamTime.day;
 
+            lastRTCSyncHour =
+                up2streamTime.hour;
 
-                //--------------------------------------------------//-----------------------------------------------//
-                // RTC został zsynchronizowany.                    // RTC has been synchronized.                    //
-                //                                                    //                                               //
-                // Nie ustawiamy go ponownie przy kolejnych         // It is not set again on subsequent UART       //
-                // odpowiedziach UART.                              // responses.                                   //
-                //--------------------------------------------------//-----------------------------------------------//
+            lastRTCSyncMinute =
+                up2streamTime.minute;
 
-                rtcSynchronized = true;
-            }
+            lastRTCSyncSecond =
+                up2streamTime.second;
+
+            rtcSynchronized = true;
         }
     }
+}
 
+//==============================================================//-----------------------------------------------//
+// Okresowe zapytanie o aktualny czas.                         // Periodic request for the current time.        //
+//==============================================================//
+
+if (millis() - lastRTCSyncRequest >= RTC_SYNC_INTERVAL_MS)
+{
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Zapytanie o aktualny czas z modułu Up2Stream.            // Request the current time from the Up2Stream   //
+    //                                                          // module.                                       //
+    //----------------------------------------------------------//-----------------------------------------------//
+
+    up2stream.query("TME;");
+
+    lastRTCSyncRequest = millis();
+}
 
     //----------------------------------------------------------//-----------------------------------------------//
     // Aktualizacja wyświetlacza.                             // Update the display.                          //
