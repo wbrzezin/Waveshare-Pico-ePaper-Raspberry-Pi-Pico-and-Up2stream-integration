@@ -983,7 +983,13 @@ if ((changes & ChangeFlags::Standby)
         //
         //------------------------------------------------------
 
-        return;
+        //------------------------------------------------------
+        // UWAGA:
+        // Brak return.
+        //
+        // Dalsza część Display::update() musi mieć możliwość
+        // obsłużenia SRC/VND i odświeżenia ekranu.
+        //------------------------------------------------------
     }
 }
 
