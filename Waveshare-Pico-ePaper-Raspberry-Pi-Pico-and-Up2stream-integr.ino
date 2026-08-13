@@ -66,7 +66,7 @@ int lastRTCSyncSecond = -1;
 //==============================================================//-----------------------------------------------//
 
 constexpr uint32_t RTC_SYNC_INTERVAL_MS =
-    60UL * 10UL * 1000UL;
+    60UL * 1000UL;
 
 uint32_t lastRTCSyncRequest = 0;
 
