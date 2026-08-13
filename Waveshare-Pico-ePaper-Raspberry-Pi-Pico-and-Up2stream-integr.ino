@@ -6,9 +6,10 @@
 //==============================================================//-----------------------------------------------//
 
 
+#include <Arduino.h>
+
 #include "Display.h"
 #include "StateComparer.h"
-#include "UTF8Print.h"
 #include "Up2StreamClient.h"
 #include "HardwareConfig.h"
 #include "PolishTime.h"
@@ -28,16 +29,6 @@ Display display;
 Up2StreamClient up2stream;
 
 
-//--------------------------------------------------------------//-----------------------------------------------//
-// Źródło danych odtwarzacza.                                  // Player data source.                          //
-//                                                              //                                               //
-// true  - dane testowe                                        // true  - test data                            //
-// false - komunikacja z modułem Up2Stream                     // false - communication with Up2Stream module //
-//--------------------------------------------------------------//-----------------------------------------------//
-
-constexpr bool USE_TEST_DATA = true;
-
-
 //==============================================================//-----------------------------------------------//
 // Informacja o synchronizacji RTC.                            // RTC synchronization status.                  //
 //                                                              //                                               //
@@ -55,7 +46,7 @@ bool rtcSynchronized = false;
 // Ostatni czas użyty do synchronizacji RTC.           // Last time used to synchronize the RTC.         //
 //                                                     //                                               //
 // Wartości -1 oznaczają, że RTC nie został jeszcze   // Values of -1 indicate that the RTC has not    //
-// zsynchronizowany.                                   // been synchronized yet.                         //
+// zsynchronizowany.                                   // been synchronized.                              //
 //------------------------------------------------------//-----------------------------------------------//
 
 int lastRTCSyncYear   = -1;
@@ -65,6 +56,7 @@ int lastRTCSyncHour   = -1;
 int lastRTCSyncMinute = -1;
 int lastRTCSyncSecond = -1;
 
+
 //==============================================================//-----------------------------------------------//
 // Okres synchronizacji RTC.                                  // RTC synchronization interval.                  //
 //                                                              //                                               //
@@ -73,9 +65,23 @@ int lastRTCSyncSecond = -1;
 //                                                              // module.                                       //
 //==============================================================//-----------------------------------------------//
 
-constexpr uint32_t RTC_SYNC_INTERVAL_MS = 60UL * 10UL * 1000UL;
+constexpr uint32_t RTC_SYNC_INTERVAL_MS =
+    60UL * 10UL * 1000UL;
 
 uint32_t lastRTCSyncRequest = 0;
+
+
+//==============================================================//-----------------------------------------------//
+// Tryb testowy interfejsu.                                    // User interface test mode.                     //
+//                                                              //                                               //
+// Po włączeniu program wykorzystuje przykładowy stan           // When enabled, the program uses example player //
+// odtwarzacza zamiast danych z modułu Up2Stream.               // data instead of data received from Up2Stream. //
+//                                                              //                                               //
+// W normalnej pracy wartość powinna pozostać false.             // During normal operation, this should remain   //
+//                                                              // false.                                        //
+//==============================================================//-----------------------------------------------//
+
+constexpr bool USE_TEST_DATA = false;
 
 
 //==============================================================//-----------------------------------------------//
@@ -96,14 +102,16 @@ PlayerState currentState;
 //==============================================================//-----------------------------------------------//
 // Wczytanie przykładowych danych.                            // Load example data.                           //
 //                                                              //                                               //
-// Funkcja wykorzystywana podczas projektowania interfejsu     // Function used while developing the user      //
-// użytkownika bez podłączonego modułu Up2Stream.              // interface without a connected Up2Stream      //
-//                                                              // module.                                      //
+// Funkcja może być wykorzystana podczas projektowania          // The function can be used while developing    //
+// interfejsu użytkownika bez podłączonego modułu Up2Stream.   // the user interface without a connected        //
+//                                                              // Up2Stream module.                              //
+//                                                              //                                               //
+// Funkcja jest wykonywana tylko wtedy, gdy                     // The function is executed only when             //
+// USE_TEST_DATA ma wartość true.                              // USE_TEST_DATA is set to true.                  //
 //==============================================================//-----------------------------------------------//
 
 void loadTestData(PlayerState& state)
 {
-
     state.source = "--";
 
     state.artist = "...";
@@ -144,7 +152,7 @@ void setup()
 
     //----------------------------------------------------------//-----------------------------------------------//
     // Inicjalizacja wyświetlacza.                             // Initialize the display.                     //
-    //----------------------------------------------------------//
+    //----------------------------------------------------------//-----------------------------------------------//
 
     display.begin();
 
@@ -199,6 +207,7 @@ void setup()
 
     up2stream.query("STA;");
 
+
     //----------------------------------------------------------//-----------------------------------------------//
     // Krótkie opóźnienie umożliwiające obejrzenie ekranu       // Short delay allowing the startup screen to   //
     // startowego.                                             // remain visible.                               //
@@ -231,11 +240,17 @@ void setup()
 //----------------------------------------------------------//-----------------------------------------------//
 // Przygotowanie przykładowych danych.                       // Prepare example data.                         //
 //                                                              //                                               //
-// Docelowo informacje będą pobierane z modułu Arylic        // In the final version, information will be     //
-// UP2Stream.                                                  // obtained from the Arylic UP2Stream module.    //
+// Jeżeli aktywny jest tryb testowy, stan odtwarzacza          // If test mode is enabled, the player state     //
+// zostanie uzupełniony przykładowymi wartościami.              // is initialized with example values.           //
+//                                                              //                                               //
+// W normalnej pracy dane pochodzą z modułu Up2Stream.         // During normal operation, data comes from      //
+//                                                              // the Up2Stream module.                          //
 //----------------------------------------------------------//-----------------------------------------------//
 
-    loadTestData(currentState);
+    if (USE_TEST_DATA)
+    {
+        loadTestData(currentState);
+    }
 
 
 //==========================================================//-----------------------------------------------//
@@ -308,100 +323,100 @@ void loop()
         //------------------------------------------------------//-----------------------------------------------//
 
         up2stream.query("SRC;");
-
-
     }
 
 
 //==============================================================//-----------------------------------------------//
 // Synchronizacja RTC.                                         // RTC synchronization.                          //
-//                                                              //
+//                                                              //                                               //
 // Odpowiedź TME jest przeliczana na czas polski i używana      // The TME response is converted to Polish time   //
 // do ustawienia zegara RTC Raspberry Pi Pico.                  // and used to set the Raspberry Pi Pico RTC.     //
-//                                                              //
+//                                                              //                                               //
 // Pierwsza synchronizacja odbywa się po uruchomieniu,          // The first synchronization takes place after    //
 // a kolejne są wykonywane okresowo.                            // startup, with subsequent synchronizations       //
 //                                                              // performed periodically.                        //
-//==============================================================//
+//==============================================================//-----------------------------------------------//
 
-const Up2StreamTime& up2streamTime =
-    up2stream.getTime();
+    const Up2StreamTime& up2streamTime =
+        up2stream.getTime();
 
-if (up2streamTime.valid)
-{
-    //------------------------------------------------------//-----------------------------------------------//
-    // Sprawdź, czy otrzymany czas różni się od czasu      // Check whether the received time differs from  //
-    // użytego podczas ostatniej synchronizacji.           // the time used for the last synchronization.    //
-    //------------------------------------------------------//-----------------------------------------------//
-
-    bool newTime =
-        !rtcSynchronized ||
-        up2streamTime.year   != lastRTCSyncYear ||
-        up2streamTime.month  != lastRTCSyncMonth ||
-        up2streamTime.day    != lastRTCSyncDay ||
-        up2streamTime.hour   != lastRTCSyncHour ||
-        up2streamTime.minute != lastRTCSyncMinute ||
-        up2streamTime.second != lastRTCSyncSecond;
-
-
-    //------------------------------------------------------//-----------------------------------------------//
-    // Synchronizuj RTC tylko po otrzymaniu nowego czasu.   // Synchronize the RTC only after receiving new    //
-    //                                                     // time data.                                     //
-    //------------------------------------------------------//-----------------------------------------------//
-
-    if (newTime)
+    if (up2streamTime.valid)
     {
-        PolishTime polishTime =
-            convertToPolishTime(
-                up2streamTime);
+        //------------------------------------------------------//-----------------------------------------------//
+        // Sprawdź, czy otrzymany czas różni się od czasu      // Check whether the received time differs from  //
+        // użytego podczas ostatniej synchronizacji.           // the time used for the last synchronization.    //
+        //------------------------------------------------------//-----------------------------------------------//
 
-        if (polishTime.valid)
+        bool newTime =
+            !rtcSynchronized ||
+            up2streamTime.year   != lastRTCSyncYear ||
+            up2streamTime.month  != lastRTCSyncMonth ||
+            up2streamTime.day    != lastRTCSyncDay ||
+            up2streamTime.hour   != lastRTCSyncHour ||
+            up2streamTime.minute != lastRTCSyncMinute ||
+            up2streamTime.second != lastRTCSyncSecond;
+
+
+        //------------------------------------------------------//-----------------------------------------------//
+        // Synchronizuj RTC tylko po otrzymaniu nowego czasu.   // Synchronize the RTC only after receiving new    //
+        //                                                     // time data.                                     //
+        //------------------------------------------------------//-----------------------------------------------//
+
+        if (newTime)
         {
-            display.setRTC(
-                polishTime);
+            PolishTime polishTime =
+                convertToPolishTime(
+                    up2streamTime);
 
-            //------------------------------------------------------//-----------------------------------------------//
-            // Zapamiętaj czas wykorzystany do synchronizacji.       // Remember the time used for synchronization.  //
-            //------------------------------------------------------//-----------------------------------------------//
+            if (polishTime.valid)
+            {
+                display.setRTC(
+                    polishTime);
 
-            lastRTCSyncYear =
-                up2streamTime.year;
+                //------------------------------------------------------//-----------------------------------------------//
+                // Zapamiętaj czas wykorzystany do synchronizacji.       // Remember the time used for synchronization.  //
+                //------------------------------------------------------//-----------------------------------------------//
 
-            lastRTCSyncMonth =
-                up2streamTime.month;
+                lastRTCSyncYear =
+                    up2streamTime.year;
 
-            lastRTCSyncDay =
-                up2streamTime.day;
+                lastRTCSyncMonth =
+                    up2streamTime.month;
 
-            lastRTCSyncHour =
-                up2streamTime.hour;
+                lastRTCSyncDay =
+                    up2streamTime.day;
 
-            lastRTCSyncMinute =
-                up2streamTime.minute;
+                lastRTCSyncHour =
+                    up2streamTime.hour;
 
-            lastRTCSyncSecond =
-                up2streamTime.second;
+                lastRTCSyncMinute =
+                    up2streamTime.minute;
 
-            rtcSynchronized = true;
+                lastRTCSyncSecond =
+                    up2streamTime.second;
+
+                rtcSynchronized = true;
+            }
         }
     }
-}
+
 
 //==============================================================//-----------------------------------------------//
 // Okresowe zapytanie o aktualny czas.                         // Periodic request for the current time.        //
-//==============================================================//
+//==============================================================//-----------------------------------------------//
 
-if (millis() - lastRTCSyncRequest >= RTC_SYNC_INTERVAL_MS)
-{
-    //----------------------------------------------------------//-----------------------------------------------//
-    // Zapytanie o aktualny czas z modułu Up2Stream.            // Request the current time from the Up2Stream   //
-    //                                                          // module.                                       //
-    //----------------------------------------------------------//-----------------------------------------------//
+    if (millis() - lastRTCSyncRequest >= RTC_SYNC_INTERVAL_MS)
+    {
+        //----------------------------------------------------------//-----------------------------------------------//
+        // Zapytanie o aktualny czas z modułu Up2Stream.            // Request the current time from the Up2Stream   //
+        //                                                          // module.                                       //
+        //----------------------------------------------------------//-----------------------------------------------//
 
-    up2stream.query("TME;");
+        up2stream.query("TME;");
 
-    lastRTCSyncRequest = millis();
-}
+        lastRTCSyncRequest = millis();
+    }
+
 
     //----------------------------------------------------------//-----------------------------------------------//
     // Aktualizacja wyświetlacza.                             // Update the display.                          //
