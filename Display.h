@@ -27,27 +27,8 @@
 #include "PlayerState.h"
 #include "ChangeFlags.h"
 #include "ScrollState.h"
-#include "Icons.h"
-#include "ScreenManager.h"
 #include "PolishTime.h"
 
-
-//--------------------------------------------------------------//-----------------------------------------------//
-// Tryb pracy interfejsu użytkownika.                         // User interface operating mode.               //
-//--------------------------------------------------------------//-----------------------------------------------//
-//                                                              //                                               //
-// Player                                                       // Player                                       //
-//      Wyświetlany jest ekran odtwarzacza.                    //      The player screen is displayed.          //
-//                                                              //                                               //
-// Idle                                                         // Idle                                         //
-//      Wyświetlany jest ekran bezczynności.                   //      The idle screen is displayed.            //
-//--------------------------------------------------------------//-----------------------------------------------//
-
-enum class DisplayMode
-{
-    Player,
-    Idle
-};
 
 
 //==============================================================//-----------------------------------------------//

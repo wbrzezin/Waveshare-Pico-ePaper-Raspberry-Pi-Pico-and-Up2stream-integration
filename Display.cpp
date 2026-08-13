@@ -20,7 +20,6 @@
 #include <GxEPD2_3C.h>
 #include "UTF8Print.h"
 #include "Theme.h"
-#include "Icons.h"
 #include "PolishTime.h"
 #include "hardware/rtc.h"
 
