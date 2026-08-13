@@ -708,8 +708,7 @@ while (epd.nextPage());
 
 void Display::showPlayer(const PlayerState& player)
 {
-    Serial.println("showPlayer()");
-
+   
     refreshFull(player);
 }
 
@@ -1191,25 +1190,10 @@ if ((changes & ChangeFlags::Standby)
     titleMoved ||
     artistMoved)
 {
-    //----------------------------------------------------------
-    // Diagnostyka aktualizacji ekranu.                         // Display update diagnostics.                   //
-    //
-    // Sprawdzamy, czy każda zmiana głośności dociera           // Check whether every volume change reaches     //
-    // do modułu Display.                                       // the Display module.                           //
-    //----------------------------------------------------------
-
-    Serial.print("DISPLAY UPDATE  VOL=");
-    Serial.print(player.volume);
-
-    Serial.print("  CHANGES=");
-    Serial.println(
-        static_cast<uint16_t>(changes));
+    
 
     refreshPartial(player, changes);
 
-    Serial.print("DISPLAY TITLE = [");
-    Serial.print(player.title);
-    Serial.println("]");
 }
 }
 
@@ -1537,13 +1521,7 @@ void Display::drawTrackInfo(const char* title,
 
 void Display::drawTitle(const char* title)
 {
-    Serial.print("DRAW TITLE = [");
-    Serial.print(title);
-    Serial.print("]  pages=");
-    Serial.print(titleScroll.pageCount);
-    Serial.print("  page=");
-    Serial.println(titleScroll.currentPage);
-
+   
     epd.setFont(&FONT_TITLE);
 
     drawScrollingText(title,
@@ -1656,23 +1634,7 @@ void Display::drawPlaybackBar(
     bool playing)
 {
 
-    //----------------------------------------------------------
-    // Diagnostyka danych przekazywanych do paska odtwarzania.  // Diagnostics for data passed to the playback bar. //
-    //----------------------------------------------------------
-
-    Serial.print("DRAW PLAYBACK  ");
-
-    Serial.print(currentTime);
-
-    Serial.print(" / ");
-
-    Serial.print(totalTime);
-
-    Serial.print("  PROGRESS=");
-
-    Serial.println(progress);
-
-
+  
 //----------------------------------------------------------
 // Ikona stanu odtwarzania.                                 // Playback state icon.                          //
 //
