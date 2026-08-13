@@ -2,12 +2,12 @@
 // Projekt : UP2Stream Display
 // Plik    : StateComparer.cpp
 //
-// Opis:
+// Opis:                                                        // Description:
 //
-// Implementacja klasy StateComparer.
+// Implementacja klasy StateComparer.                          // Implementation of the StateComparer class.
 //
-// Klasa porównuje dwa stany odtwarzacza i zwraca zestaw
-// flag określających, które elementy uległy zmianie.
+// Klasa porównuje dwa stany odtwarzacza i zwraca zestaw        // The class compares two player states and returns a set
+// flag określających, które elementy uległy zmianie.           // of flags indicating which elements have changed.
 //
 //==============================================================
 
@@ -17,21 +17,21 @@
 
 
 //==============================================================
-// Funkcja compare()
+// Funkcja compare()                                           // compare() function
 //
-// Porównuje dwa stany odtwarzacza.
+// Porównuje dwa stany odtwarzacza.                             // Compares two player states.
 //
-// Parametry:
+// Parametry:                                                   // Parameters:
 //
-// previous
-//      Poprzedni stan odtwarzacza.
+// previous                                                      // previous
+//      Poprzedni stan odtwarzacza.                             //      Previous player state.
 //
-// current
-//      Aktualny stan odtwarzacza.
+// current                                                       // current
+//      Aktualny stan odtwarzacza.                              //      Current player state.
 //
-// Zwraca:
+// Zwraca:                                                       // Returns:
 //
-// Zestaw flag opisujących wszystkie wykryte zmiany.
+// Zestaw flag opisujących wszystkie wykryte zmiany.             // A set of flags describing all detected changes.
 //
 //==============================================================
 
@@ -39,36 +39,37 @@ ChangeFlags StateComparer::compare(const PlayerState& previous,
                                    const PlayerState& current)
 {
     //----------------------------------------------------------
-    // Brak wykrytych zmian.
+    // Brak wykrytych zmian.                                    // No changes detected.
     //----------------------------------------------------------
 
     ChangeFlags changes = ChangeFlags::None;
 
 
-//----------------------------------------------------------
-// Zmiana źródła odtwarzania.
-//
-// Dla klasy String możemy bezpośrednio użyć operatora
-// porównania. Nie jest już potrzebna funkcja strcmp().
-//----------------------------------------------------------
+//----------------------------------------------------------//-----------------------------------------------//
+// Zmiana źródła odtwarzania.                                // Playback source changed.
+//                                                              //
+// Dla klasy String możemy bezpośrednio użyć operatora         // For the String class, the comparison operator
+// porównania. Nie jest już potrzebna funkcja strcmp().        // can be used directly. The strcmp() function is
+//                                                              // no longer needed.
+//----------------------------------------------------------//-----------------------------------------------//
 
 if (previous.source != current.source)
     {
         changes |= ChangeFlags::Source;
     }
 
-   //----------------------------------------------------------
-   // Zmiana wykonawcy.
-   //----------------------------------------------------------
+   //----------------------------------------------------------//-----------------------------------------------//
+   // Zmiana wykonawcy.                                        // Artist changed.
+   //----------------------------------------------------------//-----------------------------------------------//
 
    if (previous.artist != current.artist)
     {
         changes |= ChangeFlags::Artist;
     }
 
-   //----------------------------------------------------------
-   // Zmiana tytułu.
-   //----------------------------------------------------------
+   //----------------------------------------------------------//-----------------------------------------------//
+   // Zmiana tytułu.                                           // Title changed.
+   //----------------------------------------------------------//-----------------------------------------------//
 
 if (previous.title != current.title)
     {
@@ -76,7 +77,7 @@ if (previous.title != current.title)
     }
 
     //----------------------------------------------------------
-    // Aktualny czas odtwarzania.
+    // Aktualny czas odtwarzania.                              // Current playback time.
     //----------------------------------------------------------
 
     if (strcmp(previous.currentTime,
@@ -86,7 +87,7 @@ if (previous.title != current.title)
     }
 
     //----------------------------------------------------------
-    // Całkowity czas utworu.
+    // Całkowity czas utworu.                                  // Total track duration.
     //----------------------------------------------------------
 
     if (strcmp(previous.totalTime,
@@ -96,7 +97,7 @@ if (previous.title != current.title)
     }
 
     //----------------------------------------------------------
-    // Postęp odtwarzania.
+    // Postęp odtwarzania.                                    // Playback progress.
     //----------------------------------------------------------
 
     if (previous.progress != current.progress)
@@ -105,7 +106,7 @@ if (previous.title != current.title)
     }
 
     //----------------------------------------------------------
-    // Głośność.
+    // Głośność.                                               // Volume.
     //----------------------------------------------------------
 
     if (previous.volume != current.volume)
@@ -114,7 +115,7 @@ if (previous.title != current.title)
     }
 
     //----------------------------------------------------------
-    // Stan odtwarzacza.
+    // Stan odtwarzacza.                                      // Player state.
     //----------------------------------------------------------
 
     if (previous.playing != current.playing)
@@ -123,7 +124,7 @@ if (previous.title != current.title)
     }
 
     //----------------------------------------------------------
-    // Zwrócenie zestawu wykrytych zmian.
+    // Zwrócenie zestawu wykrytych zmian.                      // Return the set of detected changes.
     //----------------------------------------------------------
 
     return changes;

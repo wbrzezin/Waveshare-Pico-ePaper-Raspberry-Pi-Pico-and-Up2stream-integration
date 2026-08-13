@@ -2,10 +2,11 @@
 // Projekt : UP2Stream Display
 // Plik    : PolishTime.h
 //
-// Opis:
+// Opis:                                                        // Description:
 //
-// Funkcje związane z obliczaniem aktualnego czasu obowiązującego
-// w Polsce na podstawie czasu odebranego z modułu Up2Stream.
+// Funkcje związane z obliczaniem aktualnego czasu obowiązującego // Functions for calculating the current time applicable
+// w Polsce na podstawie czasu odebranego z modułu Up2Stream.   // in Poland based on the time received from the Up2Stream
+//                                                              // module.
 //
 //==============================================================
 
@@ -17,7 +18,7 @@
 
 
 //==============================================================
-// Struktura czasu polskiego.
+// Struktura czasu polskiego.                                   // Polish time structure.
 //==============================================================
 
 struct PolishTime
@@ -35,8 +36,8 @@ struct PolishTime
 
 
 //==============================================================
-// Sprawdzenie, czy dla podanej daty i godziny UTC obowiązuje
-// w Polsce czas letni.
+// Sprawdzenie, czy dla podanej daty i godziny UTC obowiązuje    // Checks whether daylight saving time is in effect in
+// w Polsce czas letni.                                         // Poland for the specified UTC date and time.
 //==============================================================
 
 bool isPolishSummerTime(
@@ -47,7 +48,7 @@ bool isPolishSummerTime(
 
 
 //==============================================================
-// Konwersja czasu odebranego z Up2Stream na czas polski.
+// Konwersja czasu odebranego z Up2Stream na czas polski.       // Converts the time received from Up2Stream to Polish time.
 //==============================================================
 
 PolishTime convertToPolishTime(

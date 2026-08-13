@@ -2,10 +2,10 @@
 // Projekt : UP2Stream Display
 // Plik    : Icons.cpp
 //
-// Implementacja modułu ikon.
+// Implementacja modułu ikon.                                 // Implementation of the icon module.
 //
-// Na obecnym etapie plik zawiera jedynie szkielet.
-// Bitmapy zostaną dodane w kolejnych krokach.
+// Na obecnym etapie plik zawiera jedynie szkielet.             // At the current stage, the file contains only a skeleton.
+// Bitmapy zostaną dodane w kolejnych krokach.                  // Bitmaps will be added in subsequent steps.
 //==============================================================
 
 #include <Adafruit_GFX.h>
@@ -26,9 +26,9 @@ bool drawIcon(
 
     switch (id)
     {
-        //------------------------------------------------------
-        // PLAY / PAUSE / STOP 
-        //------------------------------------------------------
+        //------------------------------------------------------//-----------------------------------------------//
+        // PLAY / PAUSE / STOP                                 // PLAY / PAUSE / STOP
+        //------------------------------------------------------//-----------------------------------------------//
         case IconId::Play:
             bitmap = ICON_PLAY_8;
             width = 8;

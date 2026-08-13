@@ -1,15 +1,10 @@
-//==============================================================
-// Projekt: UP2Stream Display
-//
-// Główny program sterujący wyświetlaczem e-paper dla modułu
-// Arylic UP2Stream.
-//
-// Zadania programu:
-// - inicjalizacja portu szeregowego,
-// - inicjalizacja wyświetlacza,
-// - wyświetlenie ekranu odtwarzacza,
-// - cykliczna aktualizacja elementów dynamicznych.
-//==============================================================
+//==============================================================//-----------------------------------------------//
+// Projekt: UP2Stream Display                                // Project: UP2Stream Display                    //
+//                                                            //                                               //
+// Główny program sterujący wyświetlaczem e-paper dla modułu // Main control program for the e-paper display  //
+// Arylic UP2Stream.                                         // for the Arylic UP2Stream module.              //
+//==============================================================//-----------------------------------------------//
+
 
 #include "Display.h"
 #include "StateComparer.h"
@@ -18,68 +13,71 @@
 #include "HardwareConfig.h"
 #include "PolishTime.h"
 
-//==============================================================
-// Utworzenie obiektu odpowiedzialnego za obsługę wyświetlacza.
-//==============================================================
+
+//==============================================================//-----------------------------------------------//
+// Utworzenie obiektu odpowiedzialnego za obsługę wyświetlacza. // Create the display control object.             //
+//==============================================================//-----------------------------------------------//
 
 Display display;
 
-//--------------------------------------------------------------
-// Komunikacja z modułem Up2Stream.
-//--------------------------------------------------------------
+
+//--------------------------------------------------------------//-----------------------------------------------//
+// Komunikacja z modułem Up2Stream.                            // Communication with the Up2Stream module.     //
+//--------------------------------------------------------------//-----------------------------------------------//
 
 Up2StreamClient up2stream;
 
-//--------------------------------------------------------------
-// Źródło danych odtwarzacza.
-//
-// true  - dane testowe
-// false - komunikacja z modułem Up2Stream
-//--------------------------------------------------------------
+
+//--------------------------------------------------------------//-----------------------------------------------//
+// Źródło danych odtwarzacza.                                  // Player data source.                          //
+//                                                              //                                               //
+// true  - dane testowe                                        // true  - test data                            //
+// false - komunikacja z modułem Up2Stream                     // false - communication with Up2Stream module //
+//--------------------------------------------------------------//-----------------------------------------------//
 
 constexpr bool USE_TEST_DATA = true;
 
 
-//==============================================================
-// Informacja o synchronizacji RTC.
-//
-// RTC synchronizujemy tylko raz po uruchomieniu programu,
-// po otrzymaniu pierwszej poprawnej odpowiedzi TME.
-//
-// Nie wolno ustawiać RTC w każdym przebiegu loop(), ponieważ
-// zegar przestałby samodzielnie odmierzać czas.
-//==============================================================
+//==============================================================//-----------------------------------------------//
+// Informacja o synchronizacji RTC.                            // RTC synchronization status.                  //
+//                                                              //                                               //
+// RTC synchronizujemy tylko raz po uruchomieniu programu,    // RTC is synchronized only once after startup, //
+// po otrzymaniu pierwszej poprawnej odpowiedzi TME.           // after receiving the first valid TME response.//
+//                                                              //                                               //
+// Nie wolno ustawiać RTC w każdym przebiegu loop(), ponieważ // The RTC must not be set during every loop(),   //
+// zegar przestałby samodzielnie odmierzać czas.               // otherwise the clock would not keep running.   //
+//==============================================================//-----------------------------------------------//
 
 bool rtcSynchronized = false;
 
-//==============================================================
-// Bufory stanu odtwarzacza.
-//
-// previousState
-//      Stan odtwarzacza wyświetlony podczas poprzedniego
-//      odświeżenia.
-//
-// currentState
-//      Aktualny stan odebrany z modułu UP2Stream.
-//
-//==============================================================
+
+//==============================================================//-----------------------------------------------//
+// Bufory stanu odtwarzacza.                                  // Player state buffers.                        //
+//                                                              //                                               //
+// previousState                                              // previousState                               //
+//      Stan odtwarzacza wyświetlony podczas poprzedniego      //      Player state used during the previous   //
+//      odświeżenia.                                           //      display update.                         //
+//                                                              //                                               //
+// currentState                                               // currentState                                //
+//      Aktualny stan odebrany z modułu UP2Stream.             //      Current state received from Up2Stream.  //
+//==============================================================//-----------------------------------------------//
 
 PlayerState previousState;
 PlayerState currentState;
 
 
-
-//==============================================================
-// Wczytanie przykładowych danych.
-//
-// Funkcja wykorzystywana podczas projektowania interfejsu
-// użytkownika bez podłączonego modułu Up2Stream.
-//==============================================================
+//==============================================================//-----------------------------------------------//
+// Wczytanie przykładowych danych.                            // Load example data.                           //
+//                                                              //                                               //
+// Funkcja wykorzystywana podczas projektowania interfejsu     // Function used while developing the user      //
+// użytkownika bez podłączonego modułu Up2Stream.              // interface without a connected Up2Stream      //
+//                                                              // module.                                      //
+//==============================================================//-----------------------------------------------//
 
 void loadTestData(PlayerState& state)
 {
     Serial.println("!!! loadTestData() !!!");
-    
+
     state.source = "--";
 
     state.artist = "...";
@@ -98,263 +96,264 @@ void loadTestData(PlayerState& state)
     state.playing = true;
 }
 
-//==============================================================
-// Funkcja setup()
-//
-// Wykonywana jednorazowo po uruchomieniu mikrokontrolera.
-//==============================================================
+
+//==============================================================//-----------------------------------------------//
+// Funkcja setup()                                            // setup() function                             //
+//                                                              //                                               //
+// Wykonywana jednorazowo po uruchomieniu mikrokontrolera.    // Executed once after the microcontroller      //
+//                                                              // starts.                                      //
+//==============================================================//-----------------------------------------------//
 
 void setup()
 {
-
-
-    
-    //----------------------------------------------------------
-    // Uruchomienie portu szeregowego.
-    // Wykorzystywany podczas uruchamiania oraz debugowania.
-    //----------------------------------------------------------
-
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Uruchomienie portu szeregowego.                         // Start the serial port.                       //
+    // Wykorzystywany podczas uruchamiania oraz debugowania.   // Used during startup and debugging.           //
+    //----------------------------------------------------------//-----------------------------------------------//
 
     while (!Serial)
         delay(10);
 
     Serial.println("Start");
 
-    //----------------------------------------------------------
-    // Inicjalizacja wyświetlacza.
-    //----------------------------------------------------------
+
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Inicjalizacja wyświetlacza.                             // Initialize the display.                     //
+    //----------------------------------------------------------//
 
     display.begin();
 
-//----------------------------------------------------------
-// Konfiguracja portu UART wykorzystywanego do komunikacji
-// z modułem Up2Stream.
-//----------------------------------------------------------
 
-UP2STREAM_SERIAL.setTX(
-    UP2STREAM_UART_TX_PIN);
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Konfiguracja portu UART wykorzystywanego do komunikacji // Configure the UART port used for             //
+    // z modułem Up2Stream.                                    // communication with the Up2Stream module.    //
+    //----------------------------------------------------------//-----------------------------------------------//
 
-UP2STREAM_SERIAL.setRX(
-    UP2STREAM_UART_RX_PIN);
+    UP2STREAM_SERIAL.setTX(
+        UP2STREAM_UART_TX_PIN);
 
-//----------------------------------------------------------
-// Zwiększenie sprzętowego bufora odbiorczego UART.
-//
-// Domyślny FIFO UART w Arduino-Pico ma 32 bajty.
-// Zwiększamy go do 128 bajtów, aby ograniczyć ryzyko
-// utraty znaków podczas odbioru dłuższych komunikatów,
-// szczególnie podczas pracy wyświetlacza e-paper.
-//
-// UWAGA:
-// setFIFOSize() musi zostać wywołane przed begin().
-//----------------------------------------------------------
+    UP2STREAM_SERIAL.setRX(
+        UP2STREAM_UART_RX_PIN);
 
-UP2STREAM_SERIAL.setFIFOSize(128);
 
-UP2STREAM_SERIAL.begin(115200);
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Zwiększenie sprzętowego bufora odbiorczego UART.        // Increase the UART hardware receive buffer.  //
+    //                                                          //                                               //
+    // Domyślny FIFO UART w Arduino-Pico ma 32 bajty.          // The default Arduino-Pico UART FIFO is       //
+    // Zwiększamy go do 128 bajtów, aby ograniczyć ryzyko      // 32 bytes. We increase it to 128 bytes to    //
+    // utraty znaków podczas odbioru dłuższych komunikatów,   // reduce the risk of losing characters while   //
+    // szczególnie podczas pracy wyświetlacza e-paper.         // receiving longer messages, especially while  //
+    //                                                          // the e-paper display is operating.             //
+    // UWAGA:                                                  // NOTE:                                         //
+    // setFIFOSize() musi zostać wywołane przed begin().       // setFIFOSize() must be called before begin().  //
+    //----------------------------------------------------------//-----------------------------------------------//
 
-    //----------------------------------------------------------
-    // Inicjalizacja klienta Up2Stream.
-    //----------------------------------------------------------
+    UP2STREAM_SERIAL.setFIFOSize(128);
+
+    UP2STREAM_SERIAL.begin(115200);
+
+
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Inicjalizacja klienta Up2Stream.                        // Initialize the Up2Stream client.             //
+    //----------------------------------------------------------//-----------------------------------------------//
 
     up2stream.begin(
         UP2STREAM_SERIAL);
 
-//==============================================================
-// Pobranie aktualnego czasu z UP2Stream.
-//
-// Jest to tymczasowe zapytanie testowe.
-// W docelowej wersji będzie wysyłane przez mechanizm
-// synchronizacji zegara.
-//==============================================================
 
-delay(1000);
+//==============================================================//-----------------------------------------------//
+// Pobranie aktualnego czasu z UP2Stream.                      // Request the current time from Up2Stream.    //
+//                                                              //                                               //
+// Jest to tymczasowe zapytanie testowe.                       // This is a temporary test query.              //
+// W docelowej wersji będzie wysyłane przez mechanizm          // In the final version it will be sent by the  //
+// synchronizacji zegara.                                     // clock synchronization mechanism.             //
+//==============================================================//-----------------------------------------------//
+
+    delay(1000);
 
 
-
-    
-    //----------------------------------------------------------
-    // Krótkie opóźnienie umożliwiające obejrzenie ekranu
-    // startowego.
-    //----------------------------------------------------------
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Krótkie opóźnienie umożliwiające obejrzenie ekranu       // Short delay allowing the startup screen to   //
+    // startowego.                                             // remain visible.                               //
+    //----------------------------------------------------------//-----------------------------------------------//
 
     delay(3000);
 
     up2stream.query("TME;");
 
-//--------------------------------------------------------------
-// Pobranie aktualnego źródła odtwarzania.
-//
-// Up2Stream odpowie komunikatem:
-//
-//     SRC:NET;
-//     SRC:BT;
-//     SRC:LINE-IN;
-//     itd.
-//
-// Odpowiedź zostanie odebrana i przetworzona podczas
-// kolejnego wywołania up2stream.update().
-//--------------------------------------------------------------
 
-up2stream.query("SRC;");
+//--------------------------------------------------------------//-----------------------------------------------//
+// Pobranie aktualnego źródła odtwarzania.                     // Request the current playback source.         //
+//                                                              //                                               //
+// Up2Stream odpowie komunikatem:                              // Up2Stream will respond with a message such as://
+//                                                              //                                               //
+//     SRC:NET;                                                //     SRC:NET;                                   //
+//     SRC:BT;                                                 //     SRC:BT;                                    //
+//     SRC:LINE-IN;                                            //     SRC:LINE-IN;                               //
+//     itd.                                                    //     etc.                                       //
+//                                                              //                                               //
+// Odpowiedź zostanie odebrana i przetworzona podczas          // The response will be received and processed  //
+// kolejnego wywołania up2stream.update().                     // during the next call to up2stream.update().  //
+//--------------------------------------------------------------//-----------------------------------------------//
 
-//----------------------------------------------------------
-// Przygotowanie przykładowych danych.
-//
-// Docelowo informacje będą pobierane z modułu Arylic
-// UP2Stream.
-//----------------------------------------------------------
-
-loadTestData(currentState);
+    up2stream.query("SRC;");
 
 
-//==========================================================
-// Porównanie poprzedniego oraz aktualnego stanu odtwarzacza.
-//
-// Funkcja compare() zwraca zestaw flag określających,
-// które elementy stanu odtwarzacza uległy zmianie.
-//
-//==========================================================
+//----------------------------------------------------------//-----------------------------------------------//
+// Przygotowanie przykładowych danych.                       // Prepare example data.                         //
+//                                                              //                                               //
+// Docelowo informacje będą pobierane z modułu Arylic        // In the final version, information will be     //
+// UP2Stream.                                                  // obtained from the Arylic UP2Stream module.    //
+//----------------------------------------------------------//-----------------------------------------------//
 
-ChangeFlags changes =
-    StateComparer::compare(previousState, currentState);
+    loadTestData(currentState);
 
 
-//==========================================================
-// Wyświetlenie aktualnego stanu odtwarzacza.
-//
-//==========================================================
+//==========================================================//-----------------------------------------------//
+// Porównanie poprzedniego oraz aktualnego stanu            // Compare the previous and current player state //
+// odtwarzacza.                                             // values.                                       //
+//                                                          //                                               //
+// Funkcja compare() zwraca zestaw flag określających,     // The compare() function returns a set of flags //
+// które elementy stanu odtwarzacza uległy zmianie.         // indicating which player state elements have   //
+//                                                          // changed.                                      //
+//==========================================================//-----------------------------------------------//
 
-display.update(currentState, changes);
-
-
-//==========================================================
-// Zapamiętanie aktualnego stanu.
-//
-// Podczas kolejnego odświeżenia będzie on traktowany jako
-// stan poprzedni.
-//
-//==========================================================
-
-previousState = currentState;
+    ChangeFlags changes =
+        StateComparer::compare(previousState, currentState);
 
 
+//==========================================================//-----------------------------------------------//
+// Wyświetlenie aktualnego stanu odtwarzacza.               // Display the current player state.             //
+//==========================================================//-----------------------------------------------//
+
+    display.update(currentState, changes);
+
+
+//==========================================================//-----------------------------------------------//
+// Zapamiętanie aktualnego stanu.                           // Store the current player state.               //
+//                                                          //                                               //
+// Podczas kolejnego odświeżenia będzie on traktowany jako  // During the next update it will be treated as   //
+// stan poprzedni.                                          // the previous state.                            //
+//==========================================================//-----------------------------------------------//
+
+    previousState = currentState;
 }
 
 
-//==============================================================
-// Funkcja loop()
-//
-// Główna pętla programu wykonywana w sposób ciągły.
-//
-// Obecnie pozostaje pusta.
-// Docelowo będzie odpowiedzialna za:
-//
-// - odczyt danych z modułu UP2Stream,
-// - aktualizację czasu odtwarzania,
-// - przewijanie długich nazw,
-// - odświeżanie paska postępu,
-// - obsługę przycisków,
-// - aktualizację ikon i informacji o stanie urządzenia.
-//==============================================================
+//==============================================================//-----------------------------------------------//
+// Funkcja loop()                                             // loop() function                              //
+//                                                              //                                               //
+// Główna pętla programu wykonywana w sposób ciągły.           // Main program loop executed continuously.     //
+//                                                              //                                               //
+// Obecnie zawiera podstawową obsługę komunikacji UART,        // It currently contains the basic UART         //
+// synchronizacji RTC oraz aktualizacji wyświetlacza.          // communication, RTC synchronization and       //
+//                                                              // display update handling.                     //
+//==============================================================//-----------------------------------------------//
 
 void loop()
 {
-    //----------------------------------------------------------
-    // Odczyt danych z modułu Up2Stream.
-    //----------------------------------------------------------
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Odczyt danych z modułu Up2Stream.                       // Read data from the Up2Stream module.         //
+    //----------------------------------------------------------//-----------------------------------------------//
 
     ChangeFlags changes =
         up2stream.update(currentState);
 
-//==============================================================
-// Wyjście z trybu standby.
-//
-// Po otrzymaniu SYS:ON ponownie pytamy Up2Stream o aktualne
-// źródło.
-//
-// Nie pytamy o VND.
-// VND jest wysyłane przez Up2Stream spontanicznie.
-//==============================================================
 
-if ((changes & ChangeFlags::Standby)
-    != ChangeFlags::None &&
-    !currentState.standby)
-{
-    //----------------------------------------------------------
-    // Pobranie aktualnego źródła.
-    //----------------------------------------------------------
+//==============================================================//-----------------------------------------------//
+// Wyjście z trybu standby.                                  // Exit from standby mode.                      //
+//                                                              //                                               //
+// Po otrzymaniu SYS:ON ponownie pytamy Up2Stream o aktualne  // After receiving SYS:ON, request the current   //
+// źródło.                                                    // source from Up2Stream again.                  //
+//                                                              //                                               //
+// Nie pytamy o VND.                                          // VND is not requested.                         //
+// VND jest wysyłane przez Up2Stream spontanicznie.            // VND is sent spontaneously by Up2Stream.      //
+//==============================================================//-----------------------------------------------//
 
-    up2stream.query("SRC;");
-}
-
-//==============================================================
-// Synchronizacja RTC.
-//
-// up2stream.update() właśnie odebrało dane z UART.
-//
-// Jeżeli odpowiedź TME została odebrana i poprawnie
-// sparsowana, możemy przeliczyć ją na czas polski
-// i ustawić zegar RTC Raspberry Pi Pico.
-//
-// RTC synchronizujemy tylko raz.
-//
-//==============================================================
-
-if (!rtcSynchronized)
-{
-    const Up2StreamTime& up2streamTime =
-        up2stream.getTime();
-
-    //----------------------------------------------------------
-    // Sprawdzenie, czy otrzymaliśmy poprawną odpowiedź TME.
-    //----------------------------------------------------------
-
-    if (up2streamTime.valid)
+    if ((changes & ChangeFlags::Standby)
+        != ChangeFlags::None &&
+        !currentState.standby)
     {
-        //------------------------------------------------------
-        // Przeliczenie czasu UTC + offset + DST
-        // na aktualny czas polski.
-        //------------------------------------------------------
+        //------------------------------------------------------//-----------------------------------------------//
+        // Pobranie aktualnego źródła.                         // Request the current source.                  //
+        //------------------------------------------------------//-----------------------------------------------//
 
-        PolishTime polishTime =
-            convertToPolishTime(
-                up2streamTime);
+        up2stream.query("SRC;");
+    }
 
-        //------------------------------------------------------
-        // Jeżeli wynik jest poprawny, ustaw RTC.
-        //------------------------------------------------------
 
-        if (polishTime.valid)
+//==============================================================//-----------------------------------------------//
+// Synchronizacja RTC.                                       // RTC synchronization.                         //
+//                                                              //                                               //
+// up2stream.update() właśnie odebrało dane z UART.            // up2stream.update() has just received data     //
+//                                                              // from UART.                                    //
+//                                                              //                                               //
+// Jeżeli odpowiedź TME została odebrana i poprawnie           // If a TME response was received and parsed     //
+// sparsowana, możemy przeliczyć ją na czas polski             // successfully, it can be converted to Polish  //
+// i ustawić zegar RTC Raspberry Pi Pico.                     // local time and used to set the Raspberry Pi    //
+//                                                              // Pico RTC.                                     //
+//                                                              //                                               //
+// RTC synchronizujemy tylko raz.                             // RTC is synchronized only once.                //
+//==============================================================//-----------------------------------------------//
+
+    if (!rtcSynchronized)
+    {
+        const Up2StreamTime& up2streamTime =
+            up2stream.getTime();
+
+
+        //------------------------------------------------------//-----------------------------------------------//
+        // Sprawdzenie, czy otrzymaliśmy poprawną odpowiedź    // Check whether a valid TME response was         //
+        // TME.                                               // received.                                      //
+        //------------------------------------------------------//-----------------------------------------------//
+
+        if (up2streamTime.valid)
         {
-            display.setRTC(
-                polishTime);
+            //--------------------------------------------------//-----------------------------------------------//
+            // Przeliczenie czasu UTC + offset + DST             // Convert UTC + offset + DST                    //
+            // na aktualny czas polski.                         // to the current Polish local time.             //
+            //--------------------------------------------------//-----------------------------------------------//
 
-            //--------------------------------------------------
-            // RTC został zsynchronizowany.
-            //
-            // Nie ustawiamy go ponownie przy kolejnych
-            // odpowiedziach UART.
-            //--------------------------------------------------
+            PolishTime polishTime =
+                convertToPolishTime(
+                    up2streamTime);
 
-            rtcSynchronized = true;
+
+            //--------------------------------------------------//-----------------------------------------------//
+            // Jeżeli wynik jest poprawny, ustaw RTC.           // If the result is valid, set the RTC.          //
+            //--------------------------------------------------//-----------------------------------------------//
+
+            if (polishTime.valid)
+            {
+                display.setRTC(
+                    polishTime);
+
+
+                //--------------------------------------------------//-----------------------------------------------//
+                // RTC został zsynchronizowany.                    // RTC has been synchronized.                    //
+                //                                                    //                                               //
+                // Nie ustawiamy go ponownie przy kolejnych         // It is not set again on subsequent UART       //
+                // odpowiedziach UART.                              // responses.                                   //
+                //--------------------------------------------------//-----------------------------------------------//
+
+                rtcSynchronized = true;
+            }
         }
     }
-}
 
-    //----------------------------------------------------------
-    // Aktualizacja wyświetlacza.
-    //----------------------------------------------------------
+
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Aktualizacja wyświetlacza.                             // Update the display.                          //
+    //----------------------------------------------------------//-----------------------------------------------//
 
     display.update(
         currentState,
         changes);
 
- 
 
-    //----------------------------------------------------------
-    // Ograniczenie częstotliwości odświeżania.
-    //----------------------------------------------------------
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Ograniczenie częstotliwości odświeżania.               // Limit the update frequency.                  //
+    //----------------------------------------------------------//-----------------------------------------------//
 
     delay(40);
 }

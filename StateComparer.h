@@ -2,13 +2,13 @@
 // Projekt : UP2Stream Display
 // Plik    : StateComparer.h
 //
-// Opis:
+// Opis:                                                        // Description:
 //
-// Definicja klasy StateComparer.
+// Definicja klasy StateComparer.                              // Definition of the StateComparer class.
 //
-// Klasa porównuje dwa stany odtwarzacza i zwraca zestaw
-// flag określających, które elementy interfejsu uległy
-// zmianie.
+// Klasa porównuje dwa stany odtwarzacza i zwraca zestaw        // The class compares two player states and returns a set
+// flag określających, które elementy interfejsu uległy         // of flags indicating which interface elements have
+// zmianie.                                                     // changed.
 //
 //==============================================================
 
@@ -21,9 +21,9 @@
 
 
 //==============================================================
-// Klasa StateComparer
+// Klasa StateComparer                                         // StateComparer class
 //
-// Odpowiada za porównanie dwóch stanów odtwarzacza.
+// Odpowiada za porównanie dwóch stanów odtwarzacza.            // Responsible for comparing two player states.
 //
 //==============================================================
 
@@ -32,21 +32,21 @@ class StateComparer
 public:
 
     //==========================================================
-    // Funkcja compare()
+    // Funkcja compare()                                       // compare() function
     //
-    // Porównuje dwa stany odtwarzacza.
+    // Porównuje dwa stany odtwarzacza.                        // Compares two player states.
     //
-    // Parametry:
+    // Parametry:                                              // Parameters:
     //
-    // previous
-    //      Poprzedni stan odtwarzacza.
+    // previous                                                 // previous
+    //      Poprzedni stan odtwarzacza.                         //      Previous player state.
     //
-    // current
-    //      Aktualny stan odtwarzacza.
+    // current                                                  // current
+    //      Aktualny stan odtwarzacza.                          //      Current player state.
     //
-    // Zwraca:
+    // Zwraca:                                                  // Returns:
     //
-    // Zestaw flag opisujących wykryte zmiany.
+    // Zestaw flag opisujących wykryte zmiany.                  // A set of flags describing the detected changes.
     //
     //==========================================================
 

@@ -2,26 +2,27 @@
 // Projekt : UP2Stream Display
 // Plik    : PolishTime.cpp
 //
-// Opis:
+// Opis:                                                        // Description:
 //
-// Implementacja obliczania czasu obowiązującego w Polsce.
+// Implementacja obliczania czasu obowiązującego w Polsce.     // Implementation of calculating the time applicable in Poland.
 //
-// Up2Stream zwraca czas UTC oraz offset:
+// Up2Stream zwraca czas UTC oraz offset:                       // Up2Stream returns UTC time and an offset:
 //
-//     TME:2026-08-10 22:17:03 (+1);
+//     TME:2026-08-10 22:17:03 (+1);                            //     TME:2026-08-10 22:17:03 (+1);
 //
-// Interpretujemy go jako:
+// Interpretujemy go jako:                                     // It is interpreted as:
 //
-//     UTC    = 22:17:03
-//     offset = +1
+//     UTC    = 22:17:03                                       //     UTC    = 22:17:03
+//     offset = +1                                              //     offset = +1
 //
-// W sierpniu w Polsce obowiązuje dodatkowo czas letni:
+// W sierpniu w Polsce obowiązuje dodatkowo czas letni:        // In August, daylight saving time is also in effect
+//                                                              // in Poland:
 //
-//     DST = +1
+//     DST = +1                                                 //     DST = +1
 //
-// Wynik:
+// Wynik:                                                       // Result:
 //
-//     22:17 + 1 + 1 = 00:17 następnego dnia
+//     22:17 + 1 + 1 = 00:17 następnego dnia                    //     22:17 + 1 + 1 = 00:17 on the following day
 //
 //==============================================================
 
@@ -29,9 +30,9 @@
 
 
 //==============================================================
-// Liczba dni w miesiącu.
+// Liczba dni w miesiącu.                                      // Number of days in a month.
 //
-// Uwzględniany jest rok przestępny.
+// Uwzględniany jest rok przestępny.                           // Leap years are taken into account.
 //==============================================================
 
 static int daysInMonth(
@@ -88,17 +89,17 @@ static int daysInMonth(
 
 
 //==============================================================
-// Dzień tygodnia.
+// Dzień tygodnia.                                             // Day of the week.
 //
-// Wynik:
+// Wynik:                                                       // Result:
 //
-//     0 = niedziela
-//     1 = poniedziałek
-//     2 = wtorek
-//     3 = środa
-//     4 = czwartek
-//     5 = piątek
-//     6 = sobota
+//     0 = niedziela                                            //     0 = Sunday
+//     1 = poniedziałek                                         //     1 = Monday
+//     2 = wtorek                                               //     2 = Tuesday
+//     3 = środa                                                //     3 = Wednesday
+//     4 = czwartek                                             //     4 = Thursday
+//     5 = piątek                                               //     5 = Friday
+//     6 = sobota                                               //     6 = Saturday
 //
 //==============================================================
 
@@ -108,10 +109,10 @@ static int dayOfWeek(
     int day)
 {
     //----------------------------------------------------------
-    // Algorytm Zeller'a.
-//
-// Styczeń i luty traktujemy jako miesiące 13 i 14
-    // poprzedniego roku.
+    // Algorytm Zeller'a.                                       // Zeller's algorithm.
+    //
+    // Styczeń i luty traktujemy jako miesiące 13 i 14         // January and February are treated as months 13 and 14
+    // poprzedniego roku.                                       // of the previous year.
     //----------------------------------------------------------
 
     if (month < 3)
@@ -136,7 +137,7 @@ static int dayOfWeek(
 
 
 //==============================================================
-// Numer ostatniej niedzieli miesiąca.
+// Numer ostatniej niedzieli miesiąca.                         // Day number of the last Sunday of the month.
 //==============================================================
 
 static int lastSunday(
@@ -159,22 +160,22 @@ static int lastSunday(
 
 
 //==============================================================
-// Sprawdzenie czasu letniego w Polsce.
+// Sprawdzenie czasu letniego w Polsce.                        // Check whether daylight saving time is in effect in Poland.
 //
-// UWAGA:
+// UWAGA:                                                       // NOTE:
 //
-// Funkcja otrzymuje CZAS UTC.
+// Funkcja otrzymuje CZAS UTC.                                  // The function receives UTC TIME.
 //
-// W Polsce:
+// W Polsce:                                                    // In Poland:
 //
-//     ostatnia niedziela marca
-//     01:00 UTC -> rozpoczęcie czasu letniego
+//     ostatnia niedziela marca                                 //     last Sunday of March
+//     01:00 UTC -> rozpoczęcie czasu letniego                  //     01:00 UTC -> start of daylight saving time
 //
-//     ostatnia niedziela października
-//     01:00 UTC -> zakończenie czasu letniego
+//     ostatnia niedziela października                           //     last Sunday of October
+//     01:00 UTC -> zakończenie czasu letniego                  //     01:00 UTC -> end of daylight saving time
 //
-// Dzięki sprawdzaniu UTC unikamy problemu z powtarzającą się
-// godziną podczas jesiennej zmiany czasu.
+// Dzięki sprawdzaniu UTC unikamy problemu z powtarzającą się  // Checking UTC avoids the problem of the repeated
+// godziną podczas jesiennej zmiany czasu.                      // hour during the autumn time change.
 //
 //==============================================================
 
@@ -185,7 +186,7 @@ bool isPolishSummerTime(
     int hour)
 {
     //----------------------------------------------------------
-    // Styczeń i luty - czas standardowy.
+    // Styczeń i luty - czas standardowy.                       // January and February - standard time.
     //----------------------------------------------------------
 
     if (month < 3)
@@ -193,7 +194,7 @@ bool isPolishSummerTime(
 
 
     //----------------------------------------------------------
-    // Kwiecień - wrzesień - czas letni.
+    // Kwiecień - wrzesień - czas letni.                       // April - September - daylight saving time.
     //----------------------------------------------------------
 
     if (month > 3 && month < 10)
@@ -201,7 +202,7 @@ bool isPolishSummerTime(
 
 
     //----------------------------------------------------------
-    // Listopad i grudzień - czas standardowy.
+    // Listopad i grudzień - czas standardowy.                  // November and December - standard time.
     //----------------------------------------------------------
 
     if (month > 10)
@@ -209,7 +210,7 @@ bool isPolishSummerTime(
 
 
     //----------------------------------------------------------
-    // MARZEC
+    // MARZEC                                                    // MARCH
     //----------------------------------------------------------
 
     if (month == 3)
@@ -226,10 +227,10 @@ bool isPolishSummerTime(
             return true;
 
         //------------------------------------------------------
-        // W dniu zmiany:
+        // W dniu zmiany:                                        // On the changeover day:
         //
-        // przed 01:00 UTC -> czas standardowy
-        // od 01:00 UTC   -> czas letni
+        // przed 01:00 UTC -> czas standardowy                   // before 01:00 UTC -> standard time
+        // od 01:00 UTC   -> czas letni                          // from 01:00 UTC -> daylight saving time
         //------------------------------------------------------
 
         return hour >= 1;
@@ -237,7 +238,7 @@ bool isPolishSummerTime(
 
 
     //----------------------------------------------------------
-    // PAŹDZIERNIK
+    // PAŹDZIERNIK                                               // OCTOBER
     //----------------------------------------------------------
 
     if (month == 10)
@@ -254,10 +255,10 @@ bool isPolishSummerTime(
             return false;
 
         //------------------------------------------------------
-        // W dniu zmiany:
+        // W dniu zmiany:                                        // On the changeover day:
         //
-        // przed 01:00 UTC -> czas letni
-        // od 01:00 UTC   -> czas standardowy
+        // przed 01:00 UTC -> czas letni                        // before 01:00 UTC -> daylight saving time
+        // od 01:00 UTC   -> czas standardowy                    // from 01:00 UTC -> standard time
         //------------------------------------------------------
 
         return hour < 1;
@@ -269,12 +270,12 @@ bool isPolishSummerTime(
 
 
 //==============================================================
-// Dodanie godzin do czasu.
+// Dodanie godzin do czasu.                                   // Add hours to a time.
 //
-// Obsługujemy zarówno wartości dodatnie, jak i ujemne.
+// Obsługujemy zarówno wartości dodatnie, jak i ujemne.        // Both positive and negative values are supported.
 //
-// Dzięki temu algorytm działa również wtedy, gdy Up2Stream
-// zwróci ujemny offset.
+// Dzięki temu algorytm działa również wtedy, gdy Up2Stream    // This also allows the algorithm to work when Up2Stream
+// zwróci ujemny offset.                                       // returns a negative offset.
 //
 //==============================================================
 
@@ -283,7 +284,7 @@ static void addHours(
     int hours)
 {
     //----------------------------------------------------------
-    // Dodawanie godzin dodatnich.
+    // Dodawanie godzin dodatnich.                              // Adding positive hours.
     //----------------------------------------------------------
 
     while (hours > 0)
@@ -297,14 +298,14 @@ static void addHours(
         }
 
         //------------------------------------------------------
-        // Przejście przez północ.
+        // Przejście przez północ.                              // Crossing midnight.
         //------------------------------------------------------
 
         time.hour = 0;
         time.day++;
 
         //------------------------------------------------------
-        // Przejście do następnego miesiąca.
+        // Przejście do następnego miesiąca.                    // Moving to the next month.
         //------------------------------------------------------
 
         if (time.day >
@@ -316,7 +317,7 @@ static void addHours(
             time.month++;
 
             //--------------------------------------------------
-            // Przejście do następnego roku.
+            // Przejście do następnego roku.                    // Moving to the next year.
             //--------------------------------------------------
 
             if (time.month > 12)
@@ -331,7 +332,7 @@ static void addHours(
 
 
     //----------------------------------------------------------
-    // Dodawanie godzin ujemnych.
+    // Dodawanie godzin ujemnych.                               // Adding negative hours.
     //----------------------------------------------------------
 
     while (hours < 0)
@@ -345,14 +346,14 @@ static void addHours(
         }
 
         //------------------------------------------------------
-        // Przejście przez północ wstecz.
+        // Przejście przez północ wstecz.                       // Crossing midnight backwards.
         //------------------------------------------------------
 
         time.hour = 23;
         time.day--;
 
         //------------------------------------------------------
-        // Przejście do poprzedniego miesiąca.
+        // Przejście do poprzedniego miesiąca.                  // Moving to the previous month.
         //------------------------------------------------------
 
         if (time.day < 1)
@@ -360,7 +361,7 @@ static void addHours(
             time.month--;
 
             //--------------------------------------------------
-            // Przejście do poprzedniego roku.
+            // Przejście do poprzedniego roku.                  // Moving to the previous year.
             //--------------------------------------------------
 
             if (time.month < 1)
@@ -381,17 +382,17 @@ static void addHours(
 
 
 //==============================================================
-// Konwersja czasu Up2Stream na czas polski.
+// Konwersja czasu Up2Stream na czas polski.                    // Convert Up2Stream time to Polish time.
 //
-// Schemat:
+// Schemat:                                                      // Scheme:
 //
-//     UTC
-//       +
-//     offset z TME
-//       +
-//     DST (+1, jeżeli obowiązuje)
-//       =
-//     czas polski
+//     UTC                                                       //     UTC
+//       +                                                         //       +
+//     offset z TME                                              //     offset from TME
+//       +                                                         //       +
+//     DST (+1, jeżeli obowiązuje)                               //     DST (+1, if applicable)
+//       =                                                         //       =
+//     czas polski                                               //     Polish time
 //
 //==============================================================
 
@@ -402,7 +403,7 @@ PolishTime convertToPolishTime(
 
 
     //----------------------------------------------------------
-    // Niepoprawny czas źródłowy.
+    // Niepoprawny czas źródłowy.                               // Invalid source time.
     //----------------------------------------------------------
 
     if (!source.valid)
@@ -410,7 +411,7 @@ PolishTime convertToPolishTime(
 
 
     //----------------------------------------------------------
-    // Skopiowanie czasu UTC.
+    // Skopiowanie czasu UTC.                                   // Copy the UTC time.
     //----------------------------------------------------------
 
     result.year = source.year;
@@ -423,8 +424,8 @@ PolishTime convertToPolishTime(
 
 
     //----------------------------------------------------------
-    // Ustalenie, czy dla otrzymanej daty UTC obowiązuje
-    // w Polsce czas letni.
+    // Ustalenie, czy dla otrzymanej daty UTC obowiązuje        // Determine whether daylight saving time is in effect
+    // w Polsce czas letni.                                     // in Poland for the received UTC date.
     //----------------------------------------------------------
 
     bool summerTime =
@@ -436,13 +437,13 @@ PolishTime convertToPolishTime(
 
 
     //----------------------------------------------------------
-    // Dodanie offsetu przekazanego przez Up2Stream.
+    // Dodanie offsetu przekazanego przez Up2Stream.             // Add the offset provided by Up2Stream.
     //
-    // Przykład:
+    // Przykład:                                                 // Example:
     //
-    //     22:17 UTC
-    //     +1
-    //     = 23:17
+    //     22:17 UTC                                             //     22:17 UTC
+    //     +1                                                     //     +1
+    //     = 23:17                                                //     = 23:17
     //----------------------------------------------------------
 
     addHours(
@@ -451,12 +452,12 @@ PolishTime convertToPolishTime(
 
 
     //----------------------------------------------------------
-    // Jeżeli obowiązuje czas letni, dodajemy dodatkową godzinę.
+    // Jeżeli obowiązuje czas letni, dodajemy dodatkową godzinę. // If daylight saving time is in effect, add one hour.
     //
-    // Przykład:
+    // Przykład:                                                 // Example:
     //
-    //     23:17 + 1h DST
-    //     = 00:17 następnego dnia
+    //     23:17 + 1h DST                                        //     23:17 + 1h DST
+    //     = 00:17 następnego dnia                               //     = 00:17 on the following day
     //----------------------------------------------------------
 
     if (summerTime)
@@ -468,7 +469,7 @@ PolishTime convertToPolishTime(
 
 
     //----------------------------------------------------------
-    // Wynik jest poprawny.
+    // Wynik jest poprawny.                                     // The result is valid.
     //----------------------------------------------------------
 
     result.valid = true;

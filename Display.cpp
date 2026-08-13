@@ -1,16 +1,16 @@
 //==============================================================
-// Projekt : UP2Stream Display
-// Plik    : Display.cpp
-// Autor   : Waldemar Brzeziński
-// Opis    : Implementacja klasy odpowiedzialnej za obsługę
-//           wyświetlacza e-paper.
+// Projekt : UP2Stream Display                              // Project: UP2Stream Display                    //
+// Plik    : Display.cpp                                    // File: Display.cpp                             //
+// Autor   : Waldemar Brzeziński                            // Author: Waldemar Brzeziński                   //
+// Opis    : Implementacja klasy odpowiedzialnej za obsługę // Description: Implementation of the class responsible for handling //
+// wyświetlacza e-paper.                                    // the e-paper display.                          //
 //==============================================================
 
 //==============================================================
-// Dołączone biblioteki
+// Dołączone biblioteki                                     // Included libraries                            //
 //
-// Biblioteki wymagane do obsługi wyświetlacza e-paper,
-// magistrali SPI oraz wykorzystywanej czcionki.
+// Biblioteki wymagane do obsługi wyświetlacza e-paper,     // Libraries required for the e-paper display,   //
+// magistrali SPI oraz wykorzystywanej czcionki.            // the SPI bus and the selected font.            //
 //==============================================================
 
 #include "Display.h"
@@ -27,36 +27,36 @@
 
 
 //==============================================================
-// Definicje współrzędnych elementów interfejsu
+// Definicje współrzędnych elementów interfejsu             // Definitions of interface element coordinates  //
 //
-// Wszystkie współrzędne zostały zebrane w jednym miejscu.
-// Dzięki temu późniejsza zmiana wyglądu ekranu wymaga jedynie
-// modyfikacji poniższych stałych.
+// Wszystkie współrzędne zostały zebrane w jednym miejscu.  // All coordinates are collected in one place.   //
+// Dzięki temu późniejsza zmiana wyglądu ekranu wymaga jedynie // This makes later changes to the screen layout require only //
+// modyfikacji poniższych stałych.                          // modifying the constants below.                //
 //==============================================================
 
 //--------------------------------------------------------------
-// Nagłówek
+// Nagłówek                                                 // Header                                        //
 //--------------------------------------------------------------
 
 constexpr int HEADER_Y         = 19;
 constexpr int HEADER_LINE      = 26;
 
 //--------------------------------------------------------------
-// Informacje o utworze
+// Informacje o utworze                                     // Track information                             //
 //--------------------------------------------------------------
 
 constexpr int TITLE_Y          = 46;
 constexpr int ARTIST_Y         = 74;
 
 //--------------------------------------------------------------
-// Pasek postępu
+// Pasek postępu                                            // Progress bar                                  //
 //--------------------------------------------------------------
 
 constexpr int BAR_X            = 0;
 constexpr int BAR_Y            = 85;
 
 //--------------------------------------------------------------
-// Ikona odtwarzania i czasy
+// Ikona odtwarzania i czasy                                // Playback icon and times                       //
 //--------------------------------------------------------------
 
 constexpr int PLAY_X           = 10;
@@ -67,58 +67,58 @@ constexpr int CURRENT_TIME_X   = 7;
 constexpr int TOTAL_TIME_X     = 205;
 
 //--------------------------------------------------------------
-// Głośność
+// Głośność                                                 // Volume                                        //
 //--------------------------------------------------------------
 
 constexpr int VOLUME_Y         = 121;
 constexpr int VOLUME_X         = 100;
 
 //--------------------------------------------------------------
-// Ekran bezczynności
+// Ekran bezczynności                                       // Idle screen                                   //
 //--------------------------------------------------------------
 
-// Data
+// Data                                                     // Date                                          //
 constexpr int IDLE_DATE_X      = 160;
 constexpr int IDLE_DATE_Y      = 14;
 
-// Zegar
+// Zegar                                                    // Clock                                         //
 constexpr int IDLE_CLOCK_X     = 78;
 constexpr int IDLE_CLOCK_Y     = 66;
 
 //--------------------------------------------------------------
-// Wyśrodkowanie zegara.
+// Wyśrodkowanie zegara.                                    // Clock centering.                              //
 //
-// Szerokość napisu będzie wyznaczana dynamicznie.
+// Szerokość napisu będzie wyznaczana dynamicznie.          // The text width will be determined dynamically. //
 //--------------------------------------------------------------
 
 constexpr int IDLE_CLOCK_AREA_X = 0;
 constexpr int IDLE_CLOCK_AREA_W = 250;
 
-// Linia oddzielająca
+// Linia oddzielająca                                       // Separator line                                //
 constexpr int IDLE_LINE_Y      = 98;
 
-// Podpis
+// Podpis                                                   // Footer text                                   //
 constexpr int IDLE_FOOTER_X    = 10;
 constexpr int IDLE_FOOTER_Y    = 118;
 
 
 //--------------------------------------------------------------
-// Ostatnia minuta wyświetlona na ekranie Idle.
+// Ostatnia minuta wyświetlona na ekranie Idle.             // Last minute displayed on the Idle screen.     //
 //
-// Wartość -1 wymusza pierwszą aktualizację.
+// Wartość -1 wymusza pierwszą aktualizację.                // The value -1 forces the first update.         //
 //--------------------------------------------------------------
 int lastIdleMinute = -1;
 
 
 //--------------------------------------------------------------
-// Marginesy ekranu
+// Marginesy ekranu                                         // Screen margins                                //
 //--------------------------------------------------------------
 
 constexpr int MARGIN_X         = 10;
 
 
 //--------------------------------------------------------------
-// Parametry obszaru przewijanego tekstu
+// Parametry obszaru przewijanego tekstu                    // Text page area parameters                     //
 //--------------------------------------------------------------
 
 constexpr int TEXT_X               = MARGIN_X;
@@ -126,24 +126,24 @@ constexpr int TEXT_WIDTH           = 230;
 
 
 //==============================================================
-// Czas wyświetlania jednej strony tekstu [ms]
+// Czas wyświetlania jednej strony tekstu [ms]              // Display time for one text page [ms]           //
 //==============================================================
 constexpr uint32_t PAGE_DISPLAY_TIME = 2000;
 
 //==============================================================
-// Czas bezczynności przed przełączeniem na ekran zegara [ms].
+// Czas bezczynności przed przełączeniem na ekran zegara [ms]. // Idle time before switching to the clock screen [ms]. //
 //
-// Na etapie testów ustawiamy 5 sekund.
+// Na etapie testów ustawiamy 5 sekund.                     // Set to 5 seconds during testing.              //
 //==============================================================
 
 constexpr uint32_t IDLE_TIMEOUT = 5000;
 
 //==============================================================
-// Konfiguracja interfejsu SPI dla Raspberry Pi Pico RP2040
+// Konfiguracja interfejsu SPI dla Raspberry Pi Pico RP2040 // SPI interface configuration for the Raspberry Pi Pico RP2040 //
 //
-// Wyświetlacz korzysta z drugiego kontrolera SPI (SPI1),
-// dzięki czemu podstawowy interfejs SPI pozostaje dostępny
-// dla innych urządzeń.
+// Wyświetlacz korzysta z drugiego kontrolera SPI (SPI1),   // The display uses the second SPI controller (SPI1), //
+// dzięki czemu podstawowy interfejs SPI pozostaje dostępny // leaving the primary SPI interface available   //
+// dla innych urządzeń.                                     // for other devices.                            //
 //==============================================================
 
 #if defined(ARDUINO_ARCH_RP2040)
@@ -152,11 +152,11 @@ SPIClassRP2040 SPIn(spi1, 12, 13, 10, 11);
 
 
 //--------------------------------------------------------------
-// Obiekt sterownika wyświetlacza e-paper.
+// Obiekt sterownika wyświetlacza e-paper.                  // E-paper display driver object.                //
 //
-// Numery pinów pobierane są z HardwareConfig.h,
-// dzięki czemu cała konfiguracja sprzętu znajduje się
-// w jednym miejscu.
+// Numery pinów pobierane są z HardwareConfig.h,            // Pin numbers are read from HardwareConfig.h,   //
+// dzięki czemu cała konfiguracja sprzętu znajduje się      // so the entire hardware configuration is kept  //
+// w jednym miejscu.                                        // in one place.                                 //
 //--------------------------------------------------------------
 
 GxEPD2_BW<GxEPD2_213_B74, GxEPD2_213_B74::HEIGHT> epd(
@@ -169,17 +169,17 @@ GxEPD2_BW<GxEPD2_213_B74, GxEPD2_213_B74::HEIGHT> epd(
 
 
 //==============================================================
-// Funkcja setRTC()
+// Funkcja setRTC()                                         // Function setRTC()                             //
 //
-// Ustawia zegar sprzętowy RTC Raspberry Pi Pico.
+// Ustawia zegar sprzętowy RTC Raspberry Pi Pico.           // Sets the Raspberry Pi Pico hardware RTC.      //
 //
-// Parametry:
+// Parametry:                                               // Parameters:                                   //
 //
-// time
-//      Czas polski obliczony na podstawie komunikatu TME.
+// time                                                     // time                                          //
+// Czas polski obliczony na podstawie komunikatu TME.       // Polish local time calculated from the TME message. //
 //
-// Funkcja nie wykonuje żadnych operacji na wyświetlaczu.
-// Jej zadaniem jest wyłącznie ustawienie RTC.
+// Funkcja nie wykonuje żadnych operacji na wyświetlaczu.   // The function performs no operations on the display. //
+// Jej zadaniem jest wyłącznie ustawienie RTC.              // Its only task is to set the RTC.              //
 //
 //==============================================================
 
@@ -190,7 +190,7 @@ void Display::setRTC(
     ">>> Display::setRTC() WYWOŁANA <<<");
     
     //----------------------------------------------------------
-    // Jeżeli czas nie jest poprawny, nie zmieniamy RTC.
+    // Jeżeli czas nie jest poprawny, nie zmieniamy RTC.        // If the time is invalid, the RTC is not changed. //
     //----------------------------------------------------------
 
     if (!time.valid)
@@ -198,7 +198,7 @@ void Display::setRTC(
 
 
     //----------------------------------------------------------
-    // Przygotowanie struktury wymaganej przez RTC RP2040.
+    // Przygotowanie struktury wymaganej przez RTC RP2040.      // Preparation of the structure required by the RP2040 RTC. //
     //----------------------------------------------------------
 
     datetime_t dateTime =
@@ -208,16 +208,16 @@ void Display::setRTC(
         .day   = static_cast<int8_t>(time.day),
 
         //------------------------------------------------------
-        // RTC RP2040:
+        // RTC RP2040:                                              // RP2040 RTC:                                   //
         //
-        // 0 = niedziela
-        // 1 = poniedziałek
-        // ...
-        // 6 = sobota
+        // 0 = niedziela                                            // 0 = Sunday                                    //
+        // 1 = poniedziałek                                         // 1 = Monday                                    //
+        // ...                                                      // ...                                           //
+        // 6 = sobota                                               // 6 = Saturday                                  //
         //
-        // Na tym etapie nie potrzebujemy jeszcze dokładnego
-        // dnia tygodnia do działania zegara, dlatego wartość
-        // może pozostać ustawiona na 0.
+        // Na tym etapie nie potrzebujemy jeszcze dokładnego        // At this stage, an exact                       //
+        // dnia tygodnia do działania zegara, dlatego wartość       // day of the week is not required for clock operation, so the value //
+        // może pozostać ustawiona na 0.                            // can remain set to 0.                          //
         //------------------------------------------------------
 
         .dotw   = 0,
@@ -229,14 +229,14 @@ void Display::setRTC(
 
 
     //----------------------------------------------------------
-    // Ustawienie RTC.
+    // Ustawienie RTC.                                          // Set the RTC.                                  //
     //----------------------------------------------------------
 
     rtc_set_datetime(&dateTime);
 
 
     //----------------------------------------------------------
-    // Diagnostyka synchronizacji.
+    // Diagnostyka synchronizacji.                              // Synchronization diagnostics.                  //
     //----------------------------------------------------------
 
     Serial.println(
@@ -288,29 +288,29 @@ bool Display::begin()
 {
 
 //----------------------------------------------------------
-// Inicjalizacja zegara RTC w RP2040.
+// Inicjalizacja zegara RTC w RP2040.                       // Initialize the RTC on the RP2040.             //
 //
-// RTC jest uruchamiany podczas inicjalizacji wyświetlacza,
-// ale jego czas nie jest tutaj ustawiany.
+// RTC jest uruchamiany podczas inicjalizacji wyświetlacza, // The RTC is started during display initialization, //
+// ale jego czas nie jest tutaj ustawiany.                  // but its time is not set here.                 //
 //
-// Aktualny czas zostanie później pobrany z modułu UP2Stream
-// poprzez zapytanie TME, przeliczony na czas polski
-// i zapisany do RTC.
+// Aktualny czas zostanie później pobrany z modułu UP2Stream // The current time will later be obtained from the UP2Stream module //
+// poprzez zapytanie TME, przeliczony na czas polski        // using the TME query, converted to Polish local time //
+// i zapisany do RTC.                                       // and stored in the RTC.                        //
 //----------------------------------------------------------
 
 rtc_init();
 
 //==============================================================
-// Konfiguracja magistrali SPI wyświetlacza e-paper.
+// Konfiguracja magistrali SPI wyświetlacza e-paper.        // Configuration of the e-paper display SPI bus. //
 //
-// Wyświetlacz korzysta z dodatkowego interfejsu SPI RP2040
-// utworzonego jako SPIn.
+// Wyświetlacz korzysta z dodatkowego interfejsu SPI RP2040 // The display uses the additional RP2040 SPI interface //
+// utworzonego jako SPIn.                                   // created as SPIn.                              //
 //
-// Parametry komunikacji:
+// Parametry komunikacji:                                   // Communication parameters:                     //
 //
-//     częstotliwość = 4 MHz
-//     kolejność bitów = MSB first
-//     tryb SPI = MODE0
+// częstotliwość = 4 MHz                                    // frequency = 4 MHz                             //
+// kolejność bitów = MSB first                              // bit order = MSB first                         //
+// tryb SPI = MODE0                                         // SPI mode = MODE0                              //
 //
 //==============================================================
 
@@ -324,22 +324,22 @@ rtc_init();
     epd.init(115200, true, 2, false);
 
     //----------------------------------------------------------
-    // Początkowo wyświetlany jest ekran odtwarzacza.
+    // Początkowo wyświetlany jest ekran odtwarzacza.           // Initially display the player screen.          //
     //----------------------------------------------------------
 
     idleScreenActive = false;
 
     //----------------------------------------------------------
-    // Zapamiętujemy moment uruchomienia bezczynności.
+    // Zapamiętujemy moment uruchomienia bezczynności.          // Remember the time when idle mode started.     //
     //
-    // Dzięki temu ekran zegara pojawi się po IDLE_TIMEOUT
-    // milisekundach, jeżeli nie wystąpi żadna istotna zmiana.
+    // Dzięki temu ekran zegara pojawi się po IDLE_TIMEOUT      // This allows the clock screen to appear after IDLE_TIMEOUT //
+    // milisekundach, jeżeli nie wystąpi żadna istotna zmiana.  // milliseconds if no significant change occurs. //
     //----------------------------------------------------------
 
     lastActivityMillis = millis();
 
     //----------------------------------------------------------
-    // Wyświetlenie ekranu startowego.
+    // Wyświetlenie ekranu startowego.                          // Display the startup screen.                   //
     //----------------------------------------------------------
 
     splash();
@@ -349,10 +349,10 @@ rtc_init();
 
 
 //==============================================================
-// Wyświetlenie ekranu startowego
+// Wyświetlenie ekranu startowego                           // Display the startup screen                    //
 //
-// Funkcja wykonywana jednorazowo podczas uruchamiania
-// urządzenia.
+// Funkcja wykonywana jednorazowo podczas uruchamiania      // Function executed once during device startup. //
+// urządzenia.                                              // of the device.                                //
 //==============================================================
 
 void Display::splash()
@@ -379,10 +379,10 @@ void Display::splash()
 }
 
 //==============================================================
-// Funkcja initScroll()
+// Funkcja initScroll()                                     // Function initScroll()                         //
 //
-// Oblicza szerokość tekstu oraz określa, czy wymagane jest
-// przewijanie.
+// Oblicza szerokość tekstu oraz określa, czy wymagane jest // Calculates the text width and determines whether //
+// przewijanie.                                             // page switching is required.                   //
 //
 //==============================================================
 
@@ -394,29 +394,29 @@ void Display::initScroll(
 {
 
     //----------------------------------------------------------
-    // Zapamiętaj szerokość dostępnego obszaru.
+    // Zapamiętaj szerokość dostępnego obszaru.                 // Remember the available area width.            //
     //----------------------------------------------------------
 
     scroll.areaWidth = areaWidth;
 
     //----------------------------------------------------------
-    // Obliczenie szerokości całego napisu.
+    // Obliczenie szerokości całego napisu.                     // Calculate the total text width.               //
     //
-    // Do pomiaru wykorzystywana jest ta sama czcionka,
-    // która zostanie użyta podczas rysowania.
+    // Do pomiaru wykorzystywana jest ta sama czcionka,         // The same font is used for measurement         //
+    // która zostanie użyta podczas rysowania.                  // as will be used for drawing.                  //
     //----------------------------------------------------------
 
 scroll.textWidth =
     measureTextWidth(text, font);
 
     //----------------------------------------------------------
-    // Sprawdź, czy wymagane jest przewijanie.
+    // Sprawdź, czy wymagane jest przewijanie.                  // Check whether page switching is required.     //
     //----------------------------------------------------------
 
     scroll.enabled = (scroll.textWidth > areaWidth);
 
  //----------------------------------------------------------
- // Wyzeruj stan wyświetlania stron.
+ // Wyzeruj stan wyświetlania stron.                         // Reset the page display state.                 //
  //----------------------------------------------------------
 
  scroll.currentPage = 0;
@@ -424,7 +424,7 @@ scroll.textWidth =
  scroll.lastUpdate  = millis();
 
  //----------------------------------------------------------
- // Wyczyść przygotowane strony.
+ // Wyczyść przygotowane strony.                             // Clear the prepared pages.                     //
  //----------------------------------------------------------
 
  for (uint8_t i = 0; i < 10; i++)
@@ -433,8 +433,8 @@ scroll.textWidth =
  }
 
  //----------------------------------------------------------
- // Jeżeli tekst mieści się w całości, przygotuj tylko jedną
- // stronę.
+ // Jeżeli tekst mieści się w całości, przygotuj tylko jedną // If the text fits completely, prepare only one //
+ // stronę.                                                  // page.                                         //
  //----------------------------------------------------------
 
  if (!scroll.enabled)
@@ -445,10 +445,10 @@ scroll.textWidth =
  }
 
 //----------------------------------------------------------
-// Podział tekstu na kolejne strony.
+// Podział tekstu na kolejne strony.                        // Split the text into successive pages.         //
 //
-// Każda strona zawiera maksymalnie dużo pełnych wyrazów,
-// które mieszczą się w dostępnym obszarze.
+// Każda strona zawiera maksymalnie dużo pełnych wyrazów,   // Each page contains as many complete words as possible //
+// które mieszczą się w dostępnym obszarze.                 // that fit within the available area.           //
 //----------------------------------------------------------
 
 String source(text);
@@ -459,7 +459,7 @@ while (start < source.length() &&
        scroll.pageCount < 10)
 {
     //------------------------------------------------------
-    // Pominięcie spacji na początku strony.
+    // Pominięcie spacji na początku strony.                    // Skip spaces at the beginning of the page.     //
     //------------------------------------------------------
 
     while (start < source.length() &&
@@ -479,7 +479,7 @@ while (start < source.length() &&
     while (true)
     {
         //--------------------------------------------------
-        // Odszukaj koniec kolejnego wyrazu.
+        // Odszukaj koniec kolejnego wyrazu.                        // Find the end of the next word.                //
         //--------------------------------------------------
 
         uint16_t end = pos;
@@ -491,7 +491,7 @@ while (start < source.length() &&
         }
 
         //--------------------------------------------------
-        // Zbuduj kandydata.
+        // Zbuduj kandydata.                                        // Build a candidate page.                       //
         //--------------------------------------------------
 
         String candidate;
@@ -502,7 +502,7 @@ while (start < source.length() &&
             candidate = bestPage + " " + source.substring(pos, end);
 
         //--------------------------------------------------
-        // Sprawdź szerokość.
+        // Sprawdź szerokość.                                       // Check the width.                              //
         //--------------------------------------------------
 
         if (measureTextWidth(candidate, font) > areaWidth)
@@ -512,14 +512,14 @@ while (start < source.length() &&
         nextStart = end;
 
         //--------------------------------------------------
-        // Koniec tekstu.
+        // Koniec tekstu.                                           // End of text.                                  //
         //--------------------------------------------------
 
         if (end >= source.length())
             break;
 
         //--------------------------------------------------
-        // Przejście do następnego wyrazu.
+        // Przejście do następnego wyrazu.                          // Move to the next word.                        //
         //--------------------------------------------------
 
         pos = end;
@@ -532,7 +532,7 @@ while (start < source.length() &&
     }
 
     //------------------------------------------------------
-    // Bardzo długi pojedynczy wyraz.
+    // Bardzo długi pojedynczy wyraz.                           // Very long single word.                        //
     //------------------------------------------------------
 
     if (bestPage.length() == 0)
@@ -560,7 +560,7 @@ while (start < source.length() &&
     }
 
     //------------------------------------------------------
-    // Zapis strony.
+    // Zapis strony.                                            // Store the page.                               //
     //------------------------------------------------------
 
     scroll.pages[scroll.pageCount++] = bestPage;
@@ -574,29 +574,29 @@ while (start < source.length() &&
 }
 
 //==============================================================
-// Funkcja updateScroll()
+// Funkcja updateScroll()                                   // Function updateScroll()                       //
 //
-// Aktualizuje pozycję przewijanego tekstu.
+// Aktualizuje pozycję przewijanego tekstu.                 // Updates the currently displayed text page.    //
 //
-// Funkcja wykonywana jest przy każdym odświeżeniu ekranu.
-// Jeżeli przewijanie nie jest wymagane, kończy działanie.
+// Funkcja wykonywana jest przy każdym odświeżeniu ekranu.  // The function is called on every display update. //
+// Jeżeli przewijanie nie jest wymagane, kończy działanie.  // If page switching is not required, it returns. //
 //
 //==============================================================
 
 //==============================================================
-// Aktualizacja wyświetlania kolejnych stron tekstu
+// Aktualizacja wyświetlania kolejnych stron tekstu         // Update the display of successive text pages   //
 //==============================================================
 bool Display::updateScroll(ScrollState& scroll)
 {
     //----------------------------------------------------------
-    // Jeżeli jest tylko jedna strona, nic nie zmieniamy.
+    // Jeżeli jest tylko jedna strona, nic nie zmieniamy.       // If there is only one page, nothing is changed. //
     //----------------------------------------------------------
 
     if (scroll.pageCount <= 1)
         return false;
 
     //----------------------------------------------------------
-    // Sprawdzenie czasu od ostatniej zmiany strony.
+    // Sprawdzenie czasu od ostatniej zmiany strony.            // Check the time since the last page change.    //
     //----------------------------------------------------------
 
     uint32_t now = millis();
@@ -606,19 +606,19 @@ bool Display::updateScroll(ScrollState& scroll)
         return false;
 
     //----------------------------------------------------------
-    // Zapamiętanie czasu przełączenia.
+    // Zapamiętanie czasu przełączenia.                         // Remember the page switch time.                //
     //----------------------------------------------------------
 
     scroll.lastUpdate = now;
 
     //----------------------------------------------------------
-    // Przejście do następnej strony.
+    // Przejście do następnej strony.                           // Move to the next page.                        //
     //----------------------------------------------------------
 
     scroll.currentPage++;
 
     //----------------------------------------------------------
-    // Powrót do pierwszej strony.
+    // Powrót do pierwszej strony.                              // Return to the first page.                     //
     //----------------------------------------------------------
 
     if (scroll.currentPage >= scroll.pageCount)
@@ -631,9 +631,9 @@ bool Display::updateScroll(ScrollState& scroll)
 }
 
 //==============================================================
-// Funkcja refreshFull()
+// Funkcja refreshFull()                                    // Function refreshFull()                        //
 //
-// Wykonuje pełne odświeżenie wyświetlacza.
+// Wykonuje pełne odświeżenie wyświetlacza.                 // Performs a full display refresh.              //
 //
 //==============================================================
 
@@ -652,15 +652,15 @@ void Display::refreshFull(const PlayerState& player)
 
 
 //==============================================================
-// Częściowe odświeżenie ekranu
+// Częściowe odświeżenie ekranu                             // Partial display refresh                       //
 //
-// Sterownik GDEY0213B74 wykonuje częściowe odświeżenie praktycznie
-// z takim samym czasem niezależnie od wielkości okna. Z tego
-// powodu obecnie odświeżany jest cały ekran.
+// Sterownik GDEY0213B74 wykonuje częściowe odświeżenie praktycznie // The GDEY0213B74 driver performs partial refresh in practically //
+// z takim samym czasem niezależnie od wielkości okna. Z tego // the same amount of time regardless of window size. //
+// powodu obecnie odświeżany jest cały ekran.               // For this reason, the entire screen is currently refreshed. //
 //
-// Parametr 'changes' pozostaje w funkcji, ponieważ w przyszłości
-// może zostać wykorzystany dla innych sterowników lub po dalszej
-// optymalizacji kodu.
+// Parametr 'changes' pozostaje w funkcji, ponieważ w przyszłości // The 'changes' parameter remains in the function because it may //
+// może zostać wykorzystany dla innych sterowników lub po dalszej // be used in the future with other drivers or after further //
+// optymalizacji kodu.                                      // code optimization.                            //
 //==============================================================
 void Display::refreshPartial(const PlayerState& player,
                              ChangeFlags changes)
@@ -668,8 +668,8 @@ void Display::refreshPartial(const PlayerState& player,
     (void)changes;
 
     //----------------------------------------------------------
-    // Ustawienie całego ekranu jako obszaru częściowego
-    // odświeżania.
+    // Ustawienie całego ekranu jako obszaru częściowego        // Set the entire screen as the partial refresh area. //
+    // odświeżania.                                             // refreshing.                                   //
     //----------------------------------------------------------
     epd.setPartialWindow(
         0,
@@ -680,7 +680,7 @@ void Display::refreshPartial(const PlayerState& player,
 
 
     //----------------------------------------------------------
-    // Narysowanie całego ekranu odtwarzacza.
+    // Narysowanie całego ekranu odtwarzacza.                   // Draw the entire player screen.                //
     //----------------------------------------------------------
     epd.firstPage();
 
@@ -693,17 +693,17 @@ while (epd.nextPage());
 }
 
 //==============================================================
-// Funkcja showPlayer()
+// Funkcja showPlayer()                                     // Function showPlayer()                         //
 //
-// Wyświetla główny ekran odtwarzacza.
+// Wyświetla główny ekran odtwarzacza.                      // Displays the main player screen.              //
 //
-// Funkcja rysuje wszystkie elementy interfejsu użytkownika
-// na podstawie informacji zawartych w strukturze PlayerState.
+// Funkcja rysuje wszystkie elementy interfejsu użytkownika // The function draws all user interface elements //
+// na podstawie informacji zawartych w strukturze PlayerState. // based on the information contained in the PlayerState structure. //
 //
-// Parametry:
+// Parametry:                                               // Parameters:                                   //
 //
-// player
-//      Aktualny stan odtwarzacza.
+// player                                                   // player                                        //
+// Aktualny stan odtwarzacza.                               // Current player state.                         //
 //
 //==============================================================
 
@@ -715,16 +715,16 @@ void Display::showPlayer(const PlayerState& player)
 }
 
 //==============================================================
-// Funkcja showIdle()
+// Funkcja showIdle()                                       // Function showIdle()                           //
 //
-// Wyświetla ekran bezczynności.
+// Wyświetla ekran bezczynności.                            // Displays the idle screen.                     //
 //
 //==============================================================
 
 void Display::showIdle()
 {
     //----------------------------------------------------------
-    // Wymuś natychmiastowe narysowanie aktualnej godziny.
+    // Wymuś natychmiastowe narysowanie aktualnej godziny.      // Force the current time to be drawn immediately. //
     //----------------------------------------------------------
 
     lastIdleMinute = -1;
@@ -733,24 +733,24 @@ void Display::showIdle()
 }
 
 //==============================================================
-// Funkcja clearScreen()
+// Funkcja clearScreen()                                    // Function clearScreen()                        //
 //
-// Całkowicie czyści ekran e-paper.
+// Całkowicie czyści ekran e-paper.                         // Completely clears the e-paper display.        //
 //
-// Po wykonaniu funkcji wyświetlacz pozostaje biały.
+// Po wykonaniu funkcji wyświetlacz pozostaje biały.        // After the function completes, the display remains white. //
 //==============================================================
 
 void Display::clearScreen()
 {
     //----------------------------------------------------------
-    // Ustawienie całego ekranu jako obszaru odświeżania.
+    // Ustawienie całego ekranu jako obszaru odświeżania.       // Set the entire screen as the refresh area.    //
     //----------------------------------------------------------
 
     epd.setFullWindow();
 
 
     //----------------------------------------------------------
-    // Rozpoczęcie pełnego odświeżania.
+    // Rozpoczęcie pełnego odświeżania.                         // Start a full refresh.                         //
     //----------------------------------------------------------
 
     epd.firstPage();
@@ -758,7 +758,7 @@ void Display::clearScreen()
     do
     {
         //------------------------------------------------------
-        // Wypełnienie całego ekranu kolorem białym.
+        // Wypełnienie całego ekranu kolorem białym.                // Fill the entire screen with white.            //
         //------------------------------------------------------
 
         epd.fillScreen(GxEPD_WHITE);
@@ -768,12 +768,12 @@ void Display::clearScreen()
 }
 
 //==============================================================
-// Funkcja updateIdle()
+// Funkcja updateIdle()                                     // Function updateIdle()                         //
 //
-// Sprawdza aktualny czas RTC.
+// Sprawdza aktualny czas RTC.                              // Checks the current RTC time.                  //
 //
-// Ekran e-paper jest odświeżany tylko wtedy, gdy zmieniła się
-// minuta. Dzięki temu nie wykonujemy niepotrzebnych odświeżeń.
+// Ekran e-paper jest odświeżany tylko wtedy, gdy zmieniła się // The e-paper screen is refreshed only when the minute changes. //
+// minuta. Dzięki temu nie wykonujemy niepotrzebnych odświeżeń. // This prevents unnecessary refreshes.          //
 //==============================================================
 
 void Display::updateIdle()
@@ -781,26 +781,26 @@ void Display::updateIdle()
     datetime_t now;
 
     //----------------------------------------------------------
-    // Pobranie aktualnego czasu z RTC.
+    // Pobranie aktualnego czasu z RTC.                         // Read the current time from the RTC.           //
     //----------------------------------------------------------
 
     rtc_get_datetime(&now);
 
     //----------------------------------------------------------
-    // Jeżeli minuta się nie zmieniła, nic nie robimy.
+    // Jeżeli minuta się nie zmieniła, nic nie robimy.          // If the minute has not changed, do nothing.    //
     //----------------------------------------------------------
 
     if (now.min == lastIdleMinute)
         return;
 
     //----------------------------------------------------------
-    // Zapamiętanie aktualnej minuty.
+    // Zapamiętanie aktualnej minuty.                           // Remember the current minute.                  //
     //----------------------------------------------------------
 
     lastIdleMinute = now.min;
 
     //----------------------------------------------------------
-    // Odświeżenie całego ekranu Idle.
+    // Odświeżenie całego ekranu Idle.                          // Refresh the entire Idle screen.               //
     //----------------------------------------------------------
 
     epd.setPartialWindow(
@@ -819,9 +819,9 @@ void Display::updateIdle()
 }
 
 //==============================================================
-// Funkcja drawScrollingText()
+// Funkcja drawScrollingText()                              // Function drawScrollingText()                  //
 //
-// Rysuje tekst z uwzględnieniem przewijania.
+// Rysuje tekst z uwzględnieniem przewijania.               // Draws text using page-based scrolling.        //
 //==============================================================
 
 void Display::drawScrollingText(const char* text,
@@ -831,16 +831,16 @@ void Display::drawScrollingText(const char* text,
                                 int width)
 {
     //----------------------------------------------------------
-    // Wyczyść obszar tekstu.
+    // Wyczyść obszar tekstu.                                   // Clear the text area.                          //
     //----------------------------------------------------------
 
    //----------------------------------------------------------
-// Obliczenie wysokości aktualnie ustawionej czcionki.
+// Obliczenie wysokości aktualnie ustawionej czcionki.      // Calculate the height of the currently selected font. //
 //
-// Każda sekcja interfejsu (tytuł, wykonawca, nagłówek)
-// może korzystać z innej czcionki. Z tego powodu wysokość
-// czyszczonego obszaru nie powinna być wpisana "na sztywno",
-// lecz wyznaczana na podstawie aktualnie ustawionej czcionki.
+// Każda sekcja interfejsu (tytuł, wykonawca, nagłówek)     // Each interface section (title, artist, header) //
+// może korzystać z innej czcionki. Z tego powodu wysokość  // may use a different font. Therefore, the height of the //
+// czyszczonego obszaru nie powinna być wpisana "na sztywno", // cleared area should not be hard-coded,        //
+// lecz wyznaczana na podstawie aktualnie ustawionej czcionki. // but determined from the currently selected font. //
 //----------------------------------------------------------
 
 int16_t x1;
@@ -849,8 +849,8 @@ int16_t y1;
 uint16_t textWidth;
 uint16_t textHeight;
 
-// Pomiar przykładowego znaku.
-// Litera "M" posiada zwykle największą wysokość.
+// Pomiar przykładowego znaku.                              // Measure a sample character.                   //
+// Litera "M" posiada zwykle największą wysokość.           // The letter "M" usually has the greatest height. //
 epd.getTextBounds(
     "M",
     0,
@@ -861,10 +861,10 @@ epd.getTextBounds(
     &textHeight);
 
 //----------------------------------------------------------
-// Wyczyść cały obszar zajmowany przez tekst.
+// Wyczyść cały obszar zajmowany przez tekst.               // Clear the entire area occupied by the text.   //
 //
-// Dodawany jest niewielki margines (2 px), aby usunąć
-// ewentualne pozostałości po poprzednim rysowaniu.
+// Dodawany jest niewielki margines (2 px), aby usunąć      // A small margin (2 px) is added to remove      //
+// ewentualne pozostałości po poprzednim rysowaniu.         // any remnants of the previous drawing.         //
 //----------------------------------------------------------
 
 epd.fillRect(
@@ -875,17 +875,17 @@ epd.fillRect(
     GxEPD_WHITE);
 
     //----------------------------------------------------------
-    // Ustaw pozycję kursora.
+    // Ustaw pozycję kursora.                                   // Set the cursor position.                      //
     //----------------------------------------------------------
 
     //----------------------------------------------------------
-    // Wyświetlenie tekstu zawsze w stałej pozycji.
+    // Wyświetlenie tekstu zawsze w stałej pozycji.             // Always display the text at a fixed position.  //
     //----------------------------------------------------------
      epd.setCursor(x, y);
 
    
     //----------------------------------------------------------
-    // Narysuj tekst.
+    // Narysuj tekst.                                           // Draw the text.                                //
     //----------------------------------------------------------
     epd.setTextWrap(false);
     printPL(epd, getVisibleText(text, scroll, width).c_str());
@@ -893,17 +893,17 @@ epd.fillRect(
 
 
 //==============================================================
-// Funkcja update()
+// Funkcja update()                                         // Function update()                             //
 //
-// Aktualizuje zawartość wyświetlacza.
+// Aktualizuje zawartość wyświetlacza.                      // Updates the display contents.                 //
 //
-// Parametry:
+// Parametry:                                               // Parameters:                                   //
 //
-// player
-//      Aktualny stan odtwarzacza.
+// player                                                   // player                                        //
+// Aktualny stan odtwarzacza.                               // Current player state.                         //
 //
-// changes
-//      Zestaw flag określających wykryte zmiany.
+// changes                                                  // changes                                       //
+// Zestaw flag określających wykryte zmiany.                // Set of flags indicating detected changes.     //
 //
 //==============================================================
 
@@ -913,19 +913,19 @@ void Display::update(const PlayerState& player,
 {
 
     //==========================================================
-    // Obsługa trybu standby.
+    // Obsługa trybu standby.                                   // Standby mode handling.                        //
     //
-    // SYS:STANDBY powoduje wyczyszczenie całego wyświetlacza.
+    // SYS:STANDBY powoduje wyczyszczenie całego wyświetlacza.  // SYS:STANDBY causes the entire display to be cleared. //
     //
-    // W trybie standby ignorujemy pozostałe zmiany stanu
-    // odtwarzacza. Dzięki temu komunikaty takie jak MUT, VOL,
-    // ELP itd. nie spowodują ponownego narysowania ekranu.
+    // W trybie standby ignorujemy pozostałe zmiany stanu       // In standby mode, other player state changes are ignored. //
+    // odtwarzacza. Dzięki temu komunikaty takie jak MUT, VOL,  // This prevents messages such as MUT, VOL,      //
+    // ELP itd. nie spowodują ponownego narysowania ekranu.     // ELP, etc. from causing the screen to be redrawn. //
     //==========================================================
 
     if (player.standby)
     {
         //------------------------------------------------------
-        // Jeżeli właśnie weszliśmy w standby, wyczyść ekran.
+        // Jeżeli właśnie weszliśmy w standby, wyczyść ekran.       // If we have just entered standby, clear the screen. //
         //------------------------------------------------------
 
         if ((changes & ChangeFlags::Standby)
@@ -934,16 +934,16 @@ void Display::update(const PlayerState& player,
             clearScreen();
 
             //--------------------------------------------------
-            // Zapamiętujemy stan ekranu.
+            // Zapamiętujemy stan ekranu.                               // Remember the current screen state.            //
             //
-            // Ekran nie jest ani odtwarzaczem, ani zegarem.
+            // Ekran nie jest ani odtwarzaczem, ani zegarem.            // The screen is neither the player screen nor the clock screen. //
             //--------------------------------------------------
 
             idleScreenActive = false;
         }
 
         //------------------------------------------------------
-        // W standby niczego więcej nie rysujemy.
+        // W standby niczego więcej nie rysujemy.                   // Nothing else is drawn in standby.             //
         //------------------------------------------------------
 
         return;
@@ -952,13 +952,13 @@ void Display::update(const PlayerState& player,
 
 
 //==========================================================
-// Wyjście z trybu standby.
+// Wyjście z trybu standby.                                 // Exit standby mode.                            //
 //
-// Po SYS:ON nie rysujemy jeszcze ekranu na podstawie
-// starego PlayerState.
+// Po SYS:ON nie rysujemy jeszcze ekranu na podstawie       // After SYS:ON, the screen is not yet drawn using the //
+// starego PlayerState.                                     // old PlayerState.                              //
 //
-// Zamiast tego pozwalamy głównej pętli ponownie pobrać
-// aktualne źródło z Up2Stream.
+// Zamiast tego pozwalamy głównej pętli ponownie pobrać     // Instead, the main loop is allowed to fetch the //
+// aktualne źródło z Up2Stream.                             // current source from Up2Stream.                //
 //==========================================================
 
 if ((changes & ChangeFlags::Standby)
@@ -967,7 +967,7 @@ if ((changes & ChangeFlags::Standby)
     if (!player.standby)
     {
         //------------------------------------------------------//-----------------------------------------------//
-        // Urządzenie wróciło do normalnej pracy.               // The device has returned to normal operation.  //
+// Urządzenie wróciło do normalnej pracy.                   // The device has returned to normal operation.  //
         //------------------------------------------------------//-----------------------------------------------//
 
         idleScreenActive = false;
@@ -975,49 +975,49 @@ if ((changes & ChangeFlags::Standby)
         lastActivityMillis = millis();
 
         //------------------------------------------------------
-        // Nie wyświetlamy jeszcze ekranu.
+        // Nie wyświetlamy jeszcze ekranu.                          // Do not display the screen yet.                //
         //
-        // Aktualny stan źródła zostanie pobrany przez:
+        // Aktualny stan źródła zostanie pobrany przez:             // The current source state will be obtained through: //
         //
-        //     SRC;
+        // SRC;                                                     // SRC;                                          //
         //
         //------------------------------------------------------
 
         //------------------------------------------------------
-        // UWAGA:
-        // Brak return.
+        // UWAGA:                                                   // NOTE:                                         //
+        // Brak return.                                             // No return.                                    //
         //
-        // Dalsza część Display::update() musi mieć możliwość
-        // obsłużenia SRC/VND i odświeżenia ekranu.
+        // Dalsza część Display::update() musi mieć możliwość       // The rest of Display::update() must be able to //
+        // obsłużenia SRC/VND i odświeżenia ekranu.                 // handle SRC/VND and refresh the screen.        //
         //------------------------------------------------------
     }
 }
 
     //----------------------------------------------------------
-    // Obsługa przełączania pomiędzy ekranem odtwarzacza
-    // a ekranem zegara.
+    // Obsługa przełączania pomiędzy ekranem odtwarzacza        // Handle switching between the player screen    //
+    // a ekranem zegara.                                        // and the clock screen.                         //
     //
-    // Zasada działania:
+    // Zasada działania:                                        // Operating principle:                          //
     //
-    // PLAY:
-    //     zawsze ekran odtwarzacza.
+    // PLAY:                                                    // PLAY:                                         //
+    // zawsze ekran odtwarzacza.                                // always show the player screen.                //
     //
-    // PAUSE / STOP:
-    //     ekran odtwarzacza pozostaje przez IDLE_TIMEOUT,
-    //     następnie przełączamy się na ekran zegara.
+    // PAUSE / STOP:                                            // PAUSE / STOP:                                 //
+    // ekran odtwarzacza pozostaje przez IDLE_TIMEOUT,          // the player screen remains visible for IDLE_TIMEOUT, //
+    // następnie przełączamy się na ekran zegara.               // then switch to the clock screen.              //
     //
-    // PLAY podczas wyświetlania zegara:
-    //     natychmiast wracamy do ekranu odtwarzacza.
+    // PLAY podczas wyświetlania zegara:                        // PLAY while the clock is displayed:            //
+    // natychmiast wracamy do ekranu odtwarzacza.               // immediately return to the player screen.      //
     //
-    // Aktualizacja zegara odbywa się przez updateIdle().
+    // Aktualizacja zegara odbywa się przez updateIdle().       // The clock is updated through updateIdle().    //
     //----------------------------------------------------------
 
 
     //----------------------------------------------------------
-    // Sprawdź, czy zmienił się stan PLAY / PAUSE.
+    // Sprawdź, czy zmienił się stan PLAY / PAUSE.              // Check whether the PLAY / PAUSE state has changed. //
     //
-    // Jest to podstawowy sygnał sterujący przełączaniem
-    // pomiędzy ekranami.
+    // Jest to podstawowy sygnał sterujący przełączaniem        // This is the primary control signal for switching //
+    // pomiędzy ekranami.                                       // between the screens.                          //
     //----------------------------------------------------------
 
     bool playStateChanged =
@@ -1026,11 +1026,11 @@ if ((changes & ChangeFlags::Standby)
 
 
     //----------------------------------------------------------
-    // Jeżeli zmienił się stan odtwarzania, zapamiętaj moment
-    // tej zmiany.
+    // Jeżeli zmienił się stan odtwarzania, zapamiętaj moment   // If the playback state changed, remember the time //
+    // tej zmiany.                                              // of that change.                               //
     //
-    // Jest to początek odliczania IDLE_TIMEOUT po przejściu
-    // z PLAY do PAUSE.
+    // Jest to początek odliczania IDLE_TIMEOUT po przejściu    // This is the start of the IDLE_TIMEOUT countdown after //
+    // z PLAY do PAUSE.                                         // switching from PLAY to PAUSE.                 //
     //----------------------------------------------------------
 
     if (playStateChanged)
@@ -1040,16 +1040,16 @@ if ((changes & ChangeFlags::Standby)
 
 
     //----------------------------------------------------------
-    // PLAY
+    // PLAY                                                     // PLAY                                          //
     //
-    // Podczas odtwarzania zawsze pokazujemy ekran odtwarzacza.
+    // Podczas odtwarzania zawsze pokazujemy ekran odtwarzacza. // During playback, always show the player screen. //
     //----------------------------------------------------------
 
     if (player.playing)
     {
         //------------------------------------------------------
-        // Jeżeli zegar był aktualnie wyświetlany, natychmiast
-        // wracamy do ekranu odtwarzacza.
+        // Jeżeli zegar był aktualnie wyświetlany, natychmiast      // If the clock is currently displayed, immediately //
+        // wracamy do ekranu odtwarzacza.                           // return to the player screen.                  //
         //------------------------------------------------------
 
         if (idleScreenActive)
@@ -1066,21 +1066,21 @@ if ((changes & ChangeFlags::Standby)
 
 
         //------------------------------------------------------
-        // Jeżeli już jesteśmy na ekranie odtwarzacza, niczego
-        // nie zmieniamy w związku z mechanizmem Idle.
+        // Jeżeli już jesteśmy na ekranie odtwarzacza, niczego      // If we are already on the player screen, nothing //
+        // nie zmieniamy w związku z mechanizmem Idle.              // is changed by the Idle mechanism.             //
         //------------------------------------------------------
     }
 
 
     //----------------------------------------------------------
-    // PAUSE / STOP
+    // PAUSE / STOP                                             // PAUSE / STOP                                  //
     //----------------------------------------------------------
 
     else
     {
         //------------------------------------------------------
-        // Jeżeli zegar jest już aktywny, pozostawiamy go
-        // aktywnego, ale aktualizujemy jego zawartość z RTC.
+        // Jeżeli zegar jest już aktywny, pozostawiamy go           // If the clock is already active, keep it active //
+        // aktywnego, ale aktualizujemy jego zawartość z RTC.       // but update its contents from the RTC.         //
         //------------------------------------------------------
 
         if (idleScreenActive)
@@ -1092,15 +1092,15 @@ if ((changes & ChangeFlags::Standby)
 
 
         //------------------------------------------------------
-        // Jesteśmy jeszcze na ekranie odtwarzacza.
+        // Jesteśmy jeszcze na ekranie odtwarzacza.                 // We are still on the player screen.            //
         //
-        // Sprawdź, czy minął czas bezczynności.
+        // Sprawdź, czy minął czas bezczynności.                    // Check whether the idle time has elapsed.      //
         //------------------------------------------------------
 
         if (millis() - lastActivityMillis >= IDLE_TIMEOUT)
         {
             //--------------------------------------------------
-            // Przełączenie na ekran zegara.
+            // Przełączenie na ekran zegara.                            // Switch to the clock screen.                   //
             //--------------------------------------------------
 
             idleScreenActive = true;
@@ -1116,18 +1116,18 @@ if ((changes & ChangeFlags::Standby)
 
 
     //----------------------------------------------------------
-    // Od tego miejsca pozostaje dotychczasowa obsługa ekranu
-    // odtwarzacza:
+    // Od tego miejsca pozostaje dotychczasowa obsługa ekranu   // From this point, the existing player screen handling remains: //
+    // odtwarzacza:                                             // of the player screen:                         //
     //
-    // - inicjalizacja przewijania tytułu,
-    // - inicjalizacja przewijania wykonawcy,
-    // - aktualizacja stron tekstu,
-    // - częściowe odświeżenie ekranu.
+    // - inicjalizacja przewijania tytułu,                      // - initialize title page switching,            //
+    // - inicjalizacja przewijania wykonawcy,                   // - initialize artist page switching,           //
+    // - aktualizacja stron tekstu,                             // - update text pages,                          //
+    // - częściowe odświeżenie ekranu.                          // - perform a partial screen refresh.           //
     //----------------------------------------------------------
 
     //----------------------------------------------------------
-    // Jeżeli zmienił się tytuł utworu,
-    // zainicjalizuj przewijanie od początku.
+    // Jeżeli zmienił się tytuł utworu,                         // If the track title changed,                   //
+    // zainicjalizuj przewijanie od początku.                   // initialize page switching from the beginning. //
     //----------------------------------------------------------
 
 
@@ -1135,10 +1135,10 @@ if ((changes & ChangeFlags::Standby)
    {
     
     //----------------------------------------------------------
-    // Inicjalizacja przewijania nazwy wykonawcy.
+    // Inicjalizacja przewijania nazwy wykonawcy.               // Initialize page switching for the artist name. //
     //
-    // Pomiar wykonywany jest z wykorzystaniem czcionki
-    // przeznaczonej dla wykonawcy.
+    // Pomiar wykonywany jest z wykorzystaniem czcionki         // Measurement is performed using the font       //
+    // przeznaczonej dla wykonawcy.                             // intended for the artist.                      //
     //----------------------------------------------------------
 
     initScroll(
@@ -1151,17 +1151,17 @@ if ((changes & ChangeFlags::Standby)
    }
 
    //----------------------------------------------------------
-   // Jeżeli zmienił się wykonawca,
-   // zainicjalizuj przewijanie od początku.
+   // Jeżeli zmienił się wykonawca,                            // If the artist changed,                        //
+   // zainicjalizuj przewijanie od początku.                   // initialize page switching from the beginning. //
    //----------------------------------------------------------
 
    if ((changes & ChangeFlags::Artist) != ChangeFlags::None)
    {
     //----------------------------------------------------------
-    // Inicjalizacja przewijania nazwy wykonawcy.
+    // Inicjalizacja przewijania nazwy wykonawcy.               // Initialize page switching for the artist name. //
     //
-    // Pomiar wykonywany jest z wykorzystaniem czcionki
-    // przeznaczonej dla wykonawcy.
+    // Pomiar wykonywany jest z wykorzystaniem czcionki         // Measurement is performed using the font       //
+    // przeznaczonej dla wykonawcy.                             // intended for the artist.                      //
     //----------------------------------------------------------
 
     initScroll(
@@ -1172,7 +1172,7 @@ if ((changes & ChangeFlags::Standby)
    }
 
    //----------------------------------------------------------
-   // Aktualizacja pozycji przewijania.
+   // Aktualizacja pozycji przewijania.                        // Update the page switching position.           //
    //----------------------------------------------------------
 
     bool titleMoved  = updateScroll(titleScroll);
@@ -1180,11 +1180,11 @@ if ((changes & ChangeFlags::Standby)
 
 
  //----------------------------------------------------------
- // Jeżeli wykryto jakąkolwiek zmianę,
- // wykonaj częściowe odświeżenie.
+ // Jeżeli wykryto jakąkolwiek zmianę,                       // If any change was detected,                   //
+ // wykonaj częściowe odświeżenie.                           // perform a partial refresh.                    //
  //
- // Pełne odświeżenie wykonywane jest tylko po uruchomieniu
- // urządzenia.
+ // Pełne odświeżenie wykonywane jest tylko po uruchomieniu  // A full refresh is performed only when the device starts //
+ // urządzenia.                                              // of the device.                                //
  //----------------------------------------------------------
 
 
@@ -1193,10 +1193,10 @@ if ((changes & ChangeFlags::Standby)
     artistMoved)
 {
     //----------------------------------------------------------
-    // Diagnostyka aktualizacji ekranu.
+    // Diagnostyka aktualizacji ekranu.                         // Display update diagnostics.                   //
     //
-    // Sprawdzamy, czy każda zmiana głośności dociera
-    // do modułu Display.
+    // Sprawdzamy, czy każda zmiana głośności dociera           // Check whether every volume change reaches     //
+    // do modułu Display.                                       // the Display module.                           //
     //----------------------------------------------------------
 
     Serial.print("DISPLAY UPDATE  VOL=");
@@ -1216,35 +1216,35 @@ if ((changes & ChangeFlags::Standby)
 
 
 //==============================================================
-// Funkcja drawPlayerScreen()
+// Funkcja drawPlayerScreen()                               // Function drawPlayerScreen()                   //
 //
-// Rysuje kompletną zawartość ekranu odtwarzacza.
+// Rysuje kompletną zawartość ekranu odtwarzacza.           // Draws the complete player screen.             //
 //
-// Funkcja odpowiada wyłącznie za rysowanie elementów
-// interfejsu użytkownika.
+// Funkcja odpowiada wyłącznie za rysowanie elementów       // The function is responsible only for drawing user interface //
+// interfejsu użytkownika.                                  // elements.                                     //
 //
-// Nie rozpoczyna ani nie kończy odświeżania wyświetlacza.
+// Nie rozpoczyna ani nie kończy odświeżania wyświetlacza.  // It does not start or finish a display refresh. //
 //
 //==============================================================
 
 void Display::drawPlayerScreen(const PlayerState& player)
 {
 //----------------------------------------------------------
-// Nagłówek z nazwą źródła + separator (linia oddzielająca).
+// Nagłówek z nazwą źródła + separator (linia oddzielająca). // Header with the source name + separator (dividing line). //
 //----------------------------------------------------------
 
 //----------------------------------------------------------
-// Przygotowanie tekstu źródła.
+// Przygotowanie tekstu źródła.                             // Prepare the source text.                      //
 //
-// Dla źródła NET, jeżeli otrzymaliśmy VND, wyświetlamy:
+// Dla źródła NET, jeżeli otrzymaliśmy VND, wyświetlamy:    // For the NET source, if VND was received, display: //
 //
-//     NET: spotify
+// NET: spotify                                             // NET: spotify                                  //
 //
-// Jeżeli VND nie zostało odebrane:
+// Jeżeli VND nie zostało odebrane:                         // If VND was not received:                      //
 //
-//     NET
+// NET                                                      // NET                                           //
 //
-// Dla pozostałych źródeł wyświetlamy wyłącznie SRC.
+// Dla pozostałych źródeł wyświetlamy wyłącznie SRC.        // For other sources, display only SRC.          //
 //----------------------------------------------------------
 
 String sourceText =
@@ -1259,14 +1259,14 @@ if (player.source == "NET" &&
 
 
 //----------------------------------------------------------
-// Nagłówek z nazwą źródła + separator.
+// Nagłówek z nazwą źródła + separator.                     // Header with the source name + separator.      //
 //----------------------------------------------------------
 
 drawHeaderArea(
     sourceText.c_str());
     
     //----------------------------------------------------------
-    // Informacje o aktualnie odtwarzanym utworze.
+    // Informacje o aktualnie odtwarzanym utworze.              // Information about the currently playing track. //
     //----------------------------------------------------------
 
    drawTrackInfo(
@@ -1274,13 +1274,13 @@ drawHeaderArea(
     player.artist.c_str());
 
 //----------------------------------------------------------
-// Pasek postępu odtwarzania.
+// Pasek postępu odtwarzania.                               // Playback progress bar.                        //
 //
-// Przekazujemy również aktualny stan odtwarzania,
-// aby ikona mogła pokazać:
+// Przekazujemy również aktualny stan odtwarzania,          // The current playback state is also passed     //
+// aby ikona mogła pokazać:                                 // so that the icon can show:                    //
 //
-// PLAY  - podczas odtwarzania,
-// PAUSE - podczas pauzy.
+// PLAY  - podczas odtwarzania,                             // PLAY  - during playback,                      //
+// PAUSE - podczas pauzy.                                   // PAUSE - while paused.                         //
 //----------------------------------------------------------
 
    drawPlaybackBar(
@@ -1290,31 +1290,31 @@ drawHeaderArea(
     player.playing);
 
     //----------------------------------------------------------
-    // Aktualny poziom głośności.
+    // Aktualny poziom głośności.                               // Current volume level.                         //
     //----------------------------------------------------------
 
     drawVolume(player.volume);
 }
 
 //==============================================================
-// Funkcja drawIdleScreen()
+// Funkcja drawIdleScreen()                                 // Function drawIdleScreen()                     //
 //
-// Rysuje ekran bezczynności.
+// Rysuje ekran bezczynności.                               // Draws the idle screen.                        //
 //
-// Na obecnym etapie wyświetlane są przykładowa data,
-// przykładowa godzina oraz podpis urządzenia.
+// Na obecnym etapie wyświetlane są przykładowa data,       // At the current stage, the screen displays the actual date, //
+// przykładowa godzina oraz podpis urządzenia.              // the actual time and the device footer.        //
 //==============================================================
 
 void Display::drawIdleScreen()
 {
     //----------------------------------------------------------
-    // Wyczyść cały ekran.
+    // Wyczyść cały ekran.                                      // Clear the entire screen.                      //
     //----------------------------------------------------------
 
     epd.fillScreen(GxEPD_WHITE);
 
         //----------------------------------------------------------
-    // Pobranie aktualnej daty i godziny z RTC.
+    // Pobranie aktualnej daty i godziny z RTC.                 // Read the current date and time from the RTC.  //
     //----------------------------------------------------------
 
     datetime_t now;
@@ -1322,11 +1322,11 @@ void Display::drawIdleScreen()
     rtc_get_datetime(&now);
 
     //----------------------------------------------------------
-    // Data.
+    // Data.                                                    // Date.                                         //
     //
-    // Format:
+    // Format:                                                  // Format:                                       //
     //
-    // DD.MM.RRRR
+    // DD.MM.RRRR                                               // DD.MM.YYYY                                    //
     //----------------------------------------------------------
 
     epd.setFont(&FONT_STATUS);
@@ -1348,15 +1348,15 @@ void Display::drawIdleScreen()
     epd.print(dateText);
 
     //----------------------------------------------------------
-    // Godzina.
+    // Godzina.                                                 // Time.                                         //
     //----------------------------------------------------------
 
 //----------------------------------------------------------
-// Wyświetlenie dużego zegara.
+// Wyświetlenie dużego zegara.                              // Display the large clock.                      //
 //
-// Pozycja pozioma wyznaczana jest automatycznie,
-// dzięki czemu każda godzina będzie idealnie
-// wyśrodkowana.
+// Pozycja pozioma wyznaczana jest automatycznie,           // The horizontal position is calculated automatically, //
+// dzięki czemu każda godzina będzie idealnie               // so every time value is perfectly              //
+// wyśrodkowana.                                            // centered.                                     //
 //----------------------------------------------------------
 
 epd.setFont(&FONT_CLOCK);
@@ -1383,7 +1383,7 @@ epd.setCursor(
 epd.print(clockText);   
 
     //----------------------------------------------------------
-    // Linia oddzielająca podpis.
+    // Linia oddzielająca podpis.                               // Separator line above the footer.              //
     //----------------------------------------------------------
 
     epd.drawLine(
@@ -1394,7 +1394,7 @@ epd.print(clockText);
     GxEPD_BLACK);
 
     //----------------------------------------------------------
-    // Podpis urządzenia.
+    // Podpis urządzenia.                                       // Device footer.                                //
     //----------------------------------------------------------
 
     epd.setFont(&FONT_STATUS);
@@ -1408,18 +1408,18 @@ epd.print(clockText);
 
 
 //==============================================================
-// Funkcja drawSourceInfo()
+// Funkcja drawSourceInfo()                                 // Function drawSourceInfo()                     //
 //
-// Rysuje informacje o aktualnym źródle dźwięku.
+// Rysuje informacje o aktualnym źródle dźwięku.            // Draws information about the current audio source. //
 //
-// Parametry:
+// Parametry:                                               // Parameters:                                   //
 //
-// source
-//      Nazwa aktualnego źródła.
+// source                                                   // source                                        //
+// Nazwa aktualnego źródła.                                 // Name of the current source.                   //
 //
-// Zwraca:
+// Zwraca:                                                  // Returns:                                      //
 //
-// nic
+// nic                                                      // nothing                                       //
 //
 //==============================================================
 
@@ -1427,11 +1427,11 @@ void Display::drawSourceInfo(const char* source)
 
 {
     //----------------------------------------------------------
-    // Wyświetlenie nazwy aktualnego źródła.
+    // Wyświetlenie nazwy aktualnego źródła.                    // Display the name of the current source.       //
     //
-    // Zrezygnowano z ikon źródeł (Spotify, Bluetooth, AirPlay,
-    // NAS, USB itd.), ponieważ na wyświetlaczu e-paper
-    // nie zapewniają wystarczającej czytelności.
+    // Zrezygnowano z ikon źródeł (Spotify, Bluetooth, AirPlay, // Source icons (Spotify, Bluetooth, AirPlay,    //
+    // NAS, USB itd.), ponieważ na wyświetlaczu e-paper         // NAS, USB, etc.) were removed because on the e-paper display //
+    // nie zapewniają wystarczającej czytelności.               // they do not provide sufficient readability.   //
     //----------------------------------------------------------
 
     drawSourceName(source);
@@ -1439,14 +1439,14 @@ void Display::drawSourceInfo(const char* source)
 
 
 //==============================================================
-// Funkcja drawSourceName()
+// Funkcja drawSourceName()                                 // Function drawSourceName()                     //
 //
-// Rysuje nazwę aktualnego źródła dźwięku.
-// Parametry:
-// source
-//      Nazwa źródła.
-// Zwraca:
-// nic
+// Rysuje nazwę aktualnego źródła dźwięku.                  // Draws the name of the current audio source.   //
+// Parametry:                                               // Parameters:                                   //
+// source                                                   // source                                        //
+// Nazwa źródła.                                            // Source name.                                  //
+// Zwraca:                                                  // Returns:                                      //
+// nic                                                      // nothing                                       //
 //
 //==============================================================
 
@@ -1456,17 +1456,17 @@ void Display::drawSourceName(const char* source)
 }
 
 //==============================================================
-// Rysowanie nagłówka z nazwą źródła dźwięku.
+// Rysowanie nagłówka z nazwą źródła dźwięku.               // Draw the header with the audio source name.   //
 //==============================================================
 
 void Display::drawHeader(const char* source)
 {
     epd.setFont(&FONT_STATUS);
 //----------------------------------------------------------
-// Nazwa źródła rozpoczyna się od lewego marginesu.
+// Nazwa źródła rozpoczyna się od lewego marginesu.         // The source name starts at the left margin.    //
 //
-// Zrezygnowano z ikon źródeł, dlatego nie jest już
-// rezerwowane miejsce na ich wyświetlenie.
+// Zrezygnowano z ikon źródeł, dlatego nie jest już         // Source icons were removed, so no space is reserved //
+// rezerwowane miejsce na ich wyświetlenie.                 // for displaying them.                          //
 //----------------------------------------------------------
     epd.setCursor(
     MARGIN_X,
@@ -1475,52 +1475,52 @@ void Display::drawHeader(const char* source)
 }
 
 //==============================================================
-// Funkcja drawHeaderArea()
+// Funkcja drawHeaderArea()                                 // Function drawHeaderArea()                     //
 //
-// Rysuje cały obszar nagłówka.
+// Rysuje cały obszar nagłówka.                             // Draws the entire header area.                 //
 //
-// Parametry:
+// Parametry:                                               // Parameters:                                   //
 //
-// source
-//      Nazwa aktualnego źródła dźwięku.
+// source                                                   // source                                        //
+// Nazwa aktualnego źródła dźwięku.                         // Name of the current audio source.             //
 //
-// Zwraca:
+// Zwraca:                                                  // Returns:                                      //
 //
-// nic
+// nic                                                      // nothing                                       //
 //
 //==============================================================
 
 void Display::drawHeaderArea(const char* source)
 {
     //----------------------------------------------------------
-    // Rysowanie nagłówka.
+    // Rysowanie nagłówka.                                      // Draw the header.                              //
     //----------------------------------------------------------
 
     drawSourceInfo(source);
 
     //----------------------------------------------------------
-    // Linia oddzielająca nagłówek od pozostałej części ekranu.
+    // Linia oddzielająca nagłówek od pozostałej części ekranu. // Separator line between the header and the rest of the screen. //
     //----------------------------------------------------------
 
     drawHeaderSeparator();
 }
 
 //==============================================================
-// Funkcja drawTrackInfo()
+// Funkcja drawTrackInfo()                                  // Function drawTrackInfo()                      //
 //
-// Rysuje informacje o aktualnie odtwarzanym utworze.
+// Rysuje informacje o aktualnie odtwarzanym utworze.       // Draws information about the currently playing track. //
 //
-// Parametry:
+// Parametry:                                               // Parameters:                                   //
 //
-// title
-//      Tytuł utworu.
+// title                                                    // title                                         //
+// Tytuł utworu.                                            // Track title.                                  //
 //
-// artist
-//      Wykonawca.
+// artist                                                   // artist                                        //
+// Wykonawca.                                               // Artist.                                       //
 //
-// Zwraca:
+// Zwraca:                                                  // Returns:                                      //
 //
-// nic
+// nic                                                      // nothing                                       //
 //
 //==============================================================
 
@@ -1533,7 +1533,7 @@ void Display::drawTrackInfo(const char* title,
 }
 
 //==============================================================
-// Rysowanie tytułu aktualnie odtwarzanego utworu.
+// Rysowanie tytułu aktualnie odtwarzanego utworu.          // Draw the title of the currently playing track. //
 //==============================================================
 
 void Display::drawTitle(const char* title)
@@ -1555,26 +1555,26 @@ void Display::drawTitle(const char* title)
 }
 
 //--------------------------------------------------------------
-// Obliczenie szerokości tekstu.
+// Obliczenie szerokości tekstu.                            // Calculate the text width.                     //
 //
-// Funkcja chwilowo ustawia przekazaną czcionkę,
-// oblicza szerokość napisu, a następnie zwraca wynik.
+// Funkcja chwilowo ustawia przekazaną czcionkę,            // The function temporarily sets the supplied font, //
+// oblicza szerokość napisu, a następnie zwraca wynik.      // calculates the text width, and returns the result. //
 //
-// Dzięki temu szerokość zawsze odpowiada czcionce,
-// która będzie użyta podczas rysowania.
+// Dzięki temu szerokość zawsze odpowiada czcionce,         // This ensures that the width always corresponds to the font //
+// która będzie użyta podczas rysowania.                    // that will be used for drawing.                //
 //--------------------------------------------------------------
 uint16_t Display::measureTextWidth(
     const String& text,
     const GFXfont* font)
 {
     //----------------------------------------------------------
-    // Ustawienie czcionki używanej do pomiaru.
+    // Ustawienie czcionki używanej do pomiaru.                 // Set the font used for measurement.            //
     //----------------------------------------------------------
 
     epd.setFont(font);
 
     //----------------------------------------------------------
-    // Wyznaczenie prostokąta ograniczającego napis.
+    // Wyznaczenie prostokąta ograniczającego napis.            // Determine the text bounding rectangle.        //
     //----------------------------------------------------------
 
     int16_t x1;
@@ -1596,10 +1596,10 @@ uint16_t Display::measureTextWidth(
 }
 
 //==============================================================
-// Funkcja calculateCenteredX()
+// Funkcja calculateCenteredX()                             // Function calculateCenteredX()                 //
 //
-// Oblicza współrzędną X umożliwiającą wyśrodkowanie napisu
-// w zadanym obszarze.
+// Oblicza współrzędną X umożliwiającą wyśrodkowanie napisu // Calculates the X coordinate required to center the text //
+// w zadanym obszarze.                                      // within the specified area.                    //
 //==============================================================
 
 int Display::calculateCenteredX(
@@ -1609,46 +1609,46 @@ int Display::calculateCenteredX(
     int areaWidth)
 {
     //----------------------------------------------------------
-    // Obliczenie szerokości napisu.
+    // Obliczenie szerokości napisu.                            // Calculate the text width.                     //
     //----------------------------------------------------------
 
     uint16_t width =
         measureTextWidth(text, font);
 
     //----------------------------------------------------------
-    // Wyznaczenie współrzędnej X.
+    // Wyznaczenie współrzędnej X.                              // Determine the X coordinate.                   //
     //----------------------------------------------------------
 
     return areaX + (areaWidth - width) / 2;
 }
 
 //==============================================================
-// Funkcja scorePage()
+// Funkcja scorePage()                                      // Function scorePage()                          //
 //
-// Oblicza ocenę jakości podziału tekstu.
+// Oblicza ocenę jakości podziału tekstu.                   // Calculates the quality score of a text page split. //
 //
-// Im lepiej wykorzystana jest szerokość strony,
-// tym wyższy wynik.
+// Im lepiej wykorzystana jest szerokość strony,            // The better the page width is utilized,        //
+// tym wyższy wynik.                                        // the higher the score.                         //
 //
-// W kolejnych etapach funkcja zostanie rozszerzona o:
-// - karę za pozostawienie bardzo krótkiej następnej strony,
-// - karę za rozpoczynanie strony od krótkich spójników,
-// - premię za bardziej naturalny podział tekstu.
+// W kolejnych etapach funkcja zostanie rozszerzona o:      // In later stages, the function will be extended with: //
+// - karę za pozostawienie bardzo krótkiej następnej strony, // - a penalty for leaving a very short next page, //
+// - karę za rozpoczynanie strony od krótkich spójników,    // - a penalty for starting a page with short conjunctions, //
+// - premię za bardziej naturalny podział tekstu.           // - a bonus for a more natural text split.      //
 //
-// Parametry:
+// Parametry:                                               // Parameters:                                   //
 //
-// page
-//      Kandydat na bieżącą stronę.
+// page                                                     // page                                          //
+// Kandydat na bieżącą stronę.                              // Candidate for the current page.               //
 //
-// remaining
-//      Pozostała część tekstu.
+// remaining                                                // remaining                                     //
+// Pozostała część tekstu.                                  // Remaining part of the text.                   //
 //
-// areaWidth
-//      Maksymalna szerokość strony w pikselach.
+// areaWidth                                                // areaWidth                                     //
+// Maksymalna szerokość strony w pikselach.                 // Maximum page width in pixels.                 //
 //
-// Zwraca:
+// Zwraca:                                                  // Returns:                                      //
 //
-// Wynik oceny. Im większa wartość, tym lepszy podział.
+// Wynik oceny. Im większa wartość, tym lepszy podział.     // Score. The higher the value, the better the split. //
 //
 //==============================================================
 int Display::scorePage(const String& page,
@@ -1664,7 +1664,7 @@ int Display::scorePage(const String& page,
 
 
 //==============================================================
-// Rysowanie nazwy wykonawcy.
+// Rysowanie nazwy wykonawcy.                               // Draw the artist name.                         //
 //==============================================================
 
 void Display::drawArtist(const char* artist)
@@ -1679,14 +1679,14 @@ drawScrollingText(artist,
 
 
 //==============================================================
-// Rysowanie paska postępu odtwarzania
+// Rysowanie paska postępu odtwarzania                      // Draw the playback progress bar                //
 //
-// Funkcja rysuje:
-// - ikonę Play,
-// - aktualny czas,
-// - pasek postępu,
-// - znacznik aktualnej pozycji,
-// - całkowity czas utworu.
+// Funkcja rysuje:                                          // The function draws:                           //
+// - ikonę Play,                                            // - the Play icon,                              //
+// - aktualny czas,                                         // - the current time,                           //
+// - pasek postępu,                                         // - the progress bar,                           //
+// - znacznik aktualnej pozycji,                            // - the current position marker,                //
+// - całkowity czas utworu.                                 // - the total track time.                       //
 //==============================================================
 
 void Display::drawPlaybackBar(
@@ -1697,7 +1697,7 @@ void Display::drawPlaybackBar(
 {
 
     //----------------------------------------------------------
-    // Diagnostyka danych przekazywanych do paska odtwarzania.
+    // Diagnostyka danych przekazywanych do paska odtwarzania.  // Diagnostics for data passed to the playback bar. //
     //----------------------------------------------------------
 
     Serial.print("DRAW PLAYBACK  ");
@@ -1714,10 +1714,10 @@ void Display::drawPlaybackBar(
 
 
 //----------------------------------------------------------
-// Ikona stanu odtwarzania.
+// Ikona stanu odtwarzania.                                 // Playback state icon.                          //
 //
-// PLAY  - gdy odtwarzanie jest aktywne.
-// PAUSE - gdy odtwarzanie jest wstrzymane.
+// PLAY  - gdy odtwarzanie jest aktywne.                    // PLAY  - when playback is active.              //
+// PAUSE - gdy odtwarzanie jest wstrzymane.                 // PAUSE - when playback is paused.              //
 //----------------------------------------------------------
 
 epd.setFont(&FONT_TIME);
@@ -1727,7 +1727,7 @@ epd.setCursor(CURRENT_TIME_X, TIME_Y);
 if (playing)
 {
     //------------------------------------------------------
-    // Ikona PLAY - trójkąt.
+    // Ikona PLAY - trójkąt.                                    // PLAY icon - triangle.                         //
     //------------------------------------------------------
 
     printPL(epd, "\x92");
@@ -1735,7 +1735,7 @@ if (playing)
 else
 {
     //------------------------------------------------------
-    // Ikona PAUSE - dwie pionowe kreski.
+    // Ikona PAUSE - dwie pionowe kreski.                       // PAUSE icon - two vertical bars.               //
     //------------------------------------------------------
 
     printPL(epd, "\x93");
@@ -1745,7 +1745,7 @@ epd.print("  ");
 printPL(epd, currentTime);
 
     //----------------------------------------------------------
-    // Parametry paska postępu.
+    // Parametry paska postępu.                                 // Progress bar parameters.                      //
     //----------------------------------------------------------
 
     const int barX = BAR_X;
@@ -1753,15 +1753,15 @@ printPL(epd, currentTime);
     const int barWidth = epd.width() - 1;
 
     //----------------------------------------------------------
-// Obliczenie szerokości odtworzonej części paska.
-// Parametr progress określa postęp odtwarzania
-// w procentach (0...100).
+// Obliczenie szerokości odtworzonej części paska.          // Calculate the width of the played portion of the bar. //
+// Parametr progress określa postęp odtwarzania             // The progress parameter specifies playback progress //
+// w procentach (0...100).                                  // as a percentage (0...100).                    //
 //----------------------------------------------------------
 
 int playedWidth = (barWidth * progress) / 100;
 
 //----------------------------------------------------------
-// Obrys całego paska.
+// Obrys całego paska.                                      // Outline of the entire bar.                    //
 //----------------------------------------------------------
 
 epd.drawRect(barX,
@@ -1771,7 +1771,7 @@ epd.drawRect(barX,
              GxEPD_BLACK);
 
 //----------------------------------------------------------
-// Wypełnienie odtworzonej części.
+// Wypełnienie odtworzonej części.                          // Fill the played portion.                      //
 //----------------------------------------------------------
 
 if (playedWidth > 0)
@@ -1783,7 +1783,7 @@ if (playedWidth > 0)
                  GxEPD_BLACK);
 }
     //----------------------------------------------------------
-    // Całkowity czas utworu.
+    // Całkowity czas utworu.                                   // Total track time.                             //
     //----------------------------------------------------------
 
     epd.setCursor(TOTAL_TIME_X, TIME_Y);
@@ -1791,28 +1791,28 @@ if (playedWidth > 0)
 }
 
 //==============================================================
-// Funkcja drawVolume()
+// Funkcja drawVolume()                                     // Function drawVolume()                         //
 //
-// Rysuje aktualny poziom głośności.
+// Rysuje aktualny poziom głośności.                        // Draws the current volume level.               //
 //
-// Parametry:
+// Parametry:                                               // Parameters:                                   //
 //
-// volume
-//      Aktualny poziom głośności (0...100%).
+// volume                                                   // volume                                        //
+// Aktualny poziom głośności (0...100%).                    // Current volume level (0...100%).              //
 //
 //==============================================================
 
 void Display::drawVolume(int volume)
 {
     //----------------------------------------------------------
-    // Ustawienie pozycji kursora.
+    // Ustawienie pozycji kursora.                              // Set the cursor position.                      //
     //----------------------------------------------------------
     epd.setFont(&FONT_VOLUME);
 
     epd.setCursor(VOLUME_X, VOLUME_Y);
 
     //----------------------------------------------------------
-    // Wyświetlenie poziomu głośności.
+    // Wyświetlenie poziomu głośności.                          // Display the volume level.                     //
     //----------------------------------------------------------
 
     epd.print("VOL ");
@@ -1823,7 +1823,7 @@ void Display::drawVolume(int volume)
 }
 
 //==============================================================
-// Rysowanie poziomej linii oddzielającej sekcje ekranu.
+// Rysowanie poziomej linii oddzielającej sekcje ekranu.    // Draw a horizontal line separating screen sections. //
 //==============================================================
 
 void Display::drawSeparator(int y)
@@ -1836,18 +1836,18 @@ void Display::drawSeparator(int y)
 }
 
 //==============================================================
-// Funkcja drawHeaderSeparator()
+// Funkcja drawHeaderSeparator()                            // Function drawHeaderSeparator()                //
 //
-// Rysuje linię oddzielającą nagłówek od pozostałej części
-// ekranu.
+// Rysuje linię oddzielającą nagłówek od pozostałej części  // Draws the line separating the header from the rest of //
+// ekranu.                                                  // the screen.                                   //
 //
-// Parametry:
+// Parametry:                                               // Parameters:                                   //
 //
-// brak
+// brak                                                     // none                                          //
 //
-// Zwraca:
+// Zwraca:                                                  // Returns:                                      //
 //
-// nic
+// nic                                                      // nothing                                       //
 //
 //==============================================================
 
@@ -1857,7 +1857,7 @@ void Display::drawHeaderSeparator()
 }
 
 //==============================================================
-// Zwrócenie aktualnie wyświetlanej strony tekstu
+// Zwrócenie aktualnie wyświetlanej strony tekstu           // Return the currently displayed text page      //
 //==============================================================
 String Display::getVisibleText(
     const String& text,
@@ -1868,19 +1868,19 @@ String Display::getVisibleText(
     (void)maxWidth;
 
     //----------------------------------------------------------
-    // Brak przygotowanych stron.
+    // Brak przygotowanych stron.                               // No prepared pages.                            //
     //----------------------------------------------------------
     if (scroll.pageCount == 0)
         return "";
 
     //----------------------------------------------------------
-    // Zabezpieczenie przed błędnym indeksem.
+    // Zabezpieczenie przed błędnym indeksem.                   // Protection against an invalid index.          //
     //----------------------------------------------------------
     if (scroll.currentPage >= scroll.pageCount)
         scroll.currentPage = 0;
 
     //----------------------------------------------------------
-    // Zwrócenie aktualnej strony.
+    // Zwrócenie aktualnej strony.                              // Return the current page.                      //
     //----------------------------------------------------------
     return scroll.pages[scroll.currentPage];
 }

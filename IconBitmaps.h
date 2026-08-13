@@ -2,20 +2,24 @@
 // Projekt : UP2Stream Display
 // Plik    : IconBitmaps.h
 //
-// Bitmapy wszystkich ikon interfejsu użytkownika.
+// Bitmapy wszystkich ikon interfejsu użytkownika.              // Bitmaps of all user interface icons.
 //
-// Każda ikona przechowywana jest jako bitmapa 1-bitowa
-// w pamięci Flash (PROGMEM).
+// Każda ikona przechowywana jest jako bitmapa 1-bitowa          // Each icon is stored as a 1-bit bitmap
+// w pamięci Flash (PROGMEM).                                   // in Flash memory (PROGMEM).
 //==============================================================
+
 
 #ifndef ICON_BITMAPS_H
 #define ICON_BITMAPS_H
 
+
 #include <Arduino.h>
 
+
 //==============================================================
-// Ikona STOP (8 × 8)
+// Ikona STOP (8 × 8)                                          // STOP icon (8 × 8)
 //==============================================================
+
 
 static const uint8_t ICON_STOP_8[] PROGMEM =
 {
@@ -29,9 +33,11 @@ static const uint8_t ICON_STOP_8[] PROGMEM =
     0b00000000
 };
 
+
 //==============================================================
-// Ikona PLAY (8 × 8)
+// Ikona PLAY (8 × 8)                                          // PLAY icon (8 × 8)
 //==============================================================
+
 
 static const uint8_t ICON_PLAY_8[] PROGMEM =
 {
@@ -45,9 +51,11 @@ static const uint8_t ICON_PLAY_8[] PROGMEM =
     0b00000000
 };
 
+
 //==============================================================
-// Ikona PAUSE (8 × 8)
+// Ikona PAUSE (8 × 8)                                         // PAUSE icon (8 × 8)
 //==============================================================
+
 
 static const uint8_t ICON_PAUSE_8[] PROGMEM =
 {
@@ -61,9 +69,11 @@ static const uint8_t ICON_PAUSE_8[] PROGMEM =
     0b00000000
 };
 
+
 //==============================================================
-// Ikona NEXT (8 × 8)
+// Ikona NEXT (8 × 8)                                          // NEXT icon (8 × 8)
 //==============================================================
+
 
 static const uint8_t ICON_NEXT_8[] PROGMEM =
 {
@@ -77,9 +87,11 @@ static const uint8_t ICON_NEXT_8[] PROGMEM =
     0b00000000
 };
 
+
 //==============================================================
-// Ikona PREVIOUS (8 × 8)
+// Ikona PREVIOUS (8 × 8)                                      // PREVIOUS icon (8 × 8)
 //==============================================================
+
 
 static const uint8_t ICON_PREVIOUS_8[] PROGMEM =
 {
@@ -94,9 +106,11 @@ static const uint8_t ICON_PREVIOUS_8[] PROGMEM =
 };
 
 
+
 //==============================================================
-// Ikona SPOTIFY (24 × 24)
+// Ikona SPOTIFY (24 × 24)                                     // SPOTIFY icon (24 × 24)
 //==============================================================
+
 
 static const uint8_t ICON_SPOTIFY_24X24[] PROGMEM =
 {
@@ -125,5 +139,6 @@ static const uint8_t ICON_SPOTIFY_24X24[] PROGMEM =
     0b00000000, 0b11111111, 0b00000000,
     0b00000000, 0b00111100, 0b00000000
 };
+
 
 #endif
