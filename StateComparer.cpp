@@ -13,8 +13,6 @@
 
 #include "StateComparer.h"
 
-#include <cstring>
-
 
 //==============================================================
 // Funkcja compare()                                           // compare() function
@@ -45,86 +43,91 @@ ChangeFlags StateComparer::compare(const PlayerState& previous,
     ChangeFlags changes = ChangeFlags::None;
 
 
-//----------------------------------------------------------//-----------------------------------------------//
-// Zmiana źródła odtwarzania.                                // Playback source changed.
-//                                                              //
-// Dla klasy String możemy bezpośrednio użyć operatora         // For the String class, the comparison operator
-// porównania. Nie jest już potrzebna funkcja strcmp().        // can be used directly. The strcmp() function is
-//                                                              // no longer needed.
-//----------------------------------------------------------//-----------------------------------------------//
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Zmiana źródła odtwarzania.                                // Playback source changed.
+    //                                                          //
+    // Dla klasy String możemy bezpośrednio użyć operatora      // For the String class, the comparison operator
+    // porównania.                                               // can be used directly.
+    //----------------------------------------------------------//-----------------------------------------------//
 
-if (previous.source != current.source)
+    if (previous.source != current.source)
     {
         changes |= ChangeFlags::Source;
     }
 
-   //----------------------------------------------------------//-----------------------------------------------//
-   // Zmiana wykonawcy.                                        // Artist changed.
-   //----------------------------------------------------------//-----------------------------------------------//
 
-   if (previous.artist != current.artist)
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Zmiana wykonawcy.                                         // Artist changed.
+    //----------------------------------------------------------//-----------------------------------------------//
+
+    if (previous.artist != current.artist)
     {
         changes |= ChangeFlags::Artist;
     }
 
-   //----------------------------------------------------------//-----------------------------------------------//
-   // Zmiana tytułu.                                           // Title changed.
-   //----------------------------------------------------------//-----------------------------------------------//
 
-if (previous.title != current.title)
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Zmiana tytułu.                                            // Title changed.
+    //----------------------------------------------------------//-----------------------------------------------//
+
+    if (previous.title != current.title)
     {
         changes |= ChangeFlags::Title;
     }
 
-    //----------------------------------------------------------
-    // Aktualny czas odtwarzania.                              // Current playback time.
-    //----------------------------------------------------------
 
-    if (strcmp(previous.currentTime,
-               current.currentTime) != 0)
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Aktualny czas odtwarzania.                               // Current playback time.
+    //----------------------------------------------------------//-----------------------------------------------//
+
+    if (previous.currentTime != current.currentTime)
     {
         changes |= ChangeFlags::CurrentTime;
     }
 
-    //----------------------------------------------------------
-    // Całkowity czas utworu.                                  // Total track duration.
-    //----------------------------------------------------------
 
-    if (strcmp(previous.totalTime,
-               current.totalTime) != 0)
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Całkowity czas utworu.                                   // Total track duration.
+    //----------------------------------------------------------//-----------------------------------------------//
+
+    if (previous.totalTime != current.totalTime)
     {
         changes |= ChangeFlags::TotalTime;
     }
 
-    //----------------------------------------------------------
-    // Postęp odtwarzania.                                    // Playback progress.
-    //----------------------------------------------------------
+
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Postęp odtwarzania.                                      // Playback progress.
+    //----------------------------------------------------------//-----------------------------------------------//
 
     if (previous.progress != current.progress)
     {
         changes |= ChangeFlags::Progress;
     }
 
-    //----------------------------------------------------------
-    // Głośność.                                               // Volume.
-    //----------------------------------------------------------
+
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Głośność.                                                 // Volume.
+    //----------------------------------------------------------//-----------------------------------------------//
 
     if (previous.volume != current.volume)
     {
         changes |= ChangeFlags::Volume;
     }
 
-    //----------------------------------------------------------
-    // Stan odtwarzacza.                                      // Player state.
-    //----------------------------------------------------------
+
+    //----------------------------------------------------------//-----------------------------------------------//
+    // Stan odtwarzacza.                                         // Player state.
+    //----------------------------------------------------------//-----------------------------------------------//
 
     if (previous.playing != current.playing)
     {
         changes |= ChangeFlags::PlayState;
     }
 
+
     //----------------------------------------------------------
-    // Zwrócenie zestawu wykrytych zmian.                      // Return the set of detected changes.
+    // Zwrócenie zestawu wykrytych zmian.                       // Return the set of detected changes.
     //----------------------------------------------------------
 
     return changes;
