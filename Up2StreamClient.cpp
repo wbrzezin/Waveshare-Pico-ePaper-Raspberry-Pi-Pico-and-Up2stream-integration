@@ -646,32 +646,104 @@ if (strncmp(message, "SRC:", 4) == 0)
 // Informacja jest zapisywana w PlayerState::vendor.       // The information is stored in PlayerState::vendor. //
 //======================================================//-----------------------------------------------//
 
+//======================================================//-----------------------------------------------//
+// Komenda VND - dostawca / usługa źródła                  // VND command - source provider / service     //
+//======================================================//
+//                                                         //
+// Normalny komunikat:                                     // Normal message:                             //
+//                                                         //
+//     VND:Spotify;                                        // VND:Spotify;                                //
+//                                                         //
+// Up2Stream może jednak skleić VND z kolejnym             // Up2Stream may concatenate VND with the      //
+// komunikatem, np.:                                       // following message, for example:             //
+//                                                         //
+//     VND:spoELP:16294/200400;                            // VND:spoELP:16294/200400;                    //
+//                                                         //
+// W takim przypadku kończymy VND przed "ELP:".            // In this case VND ends before "ELP:".        //
+// Fragment ELP zostanie przetworzony osobno.              // The ELP fragment is processed separately.   //
+//======================================================//
+
 if (strncmp(message, "VND:", 4) == 0)
 {
     //------------------------------------------------------//-----------------------------------------------//
-    // Zapisz nazwę dostawcy/usługi.                           // Store the provider/service name.            //
+    // Początek właściwej nazwy dostawcy/usługi.              // Start of provider/service name.             //
+    //------------------------------------------------------//
+
+    const char* vendorStart =
+        message + 4;
+
+    //------------------------------------------------------//-----------------------------------------------//
+    // Domyślnie koniec VND znajduje się na średniku.          // By default VND ends at the semicolon.       //
+    //------------------------------------------------------//
+
+    const char* vendorEnd =
+        strchr(vendorStart, ';');
+
+    //------------------------------------------------------//-----------------------------------------------//
+    // Sprawdź, czy z VND został sklejony komunikat ELP.       // Check whether an ELP message was            //
+    //                                                         // concatenated with VND.                      //
+    //                                                         //                                             //
+    // Przykład:                                               // Example:                                    //
+    //                                                         //                                             //
+    // VND:spoELP:16294/200400;                                // VND:spoELP:16294/200400;                    //
     //------------------------------------------------------//-----------------------------------------------//
 
-    player.vendor =
-        String(message + 4);
-
+    const char* embeddedELP =
+        strstr(vendorStart, "ELP:");
 
     //------------------------------------------------------//-----------------------------------------------//
-    // Usuń końcowy znak ';'.                                  // Remove the trailing ';' character.          //
-    //------------------------------------------------------//-----------------------------------------------//
+    // Jeżeli ELP występuje przed średnikiem,                   // If ELP occurs before the semicolon,         //
+    // VND kończy się przed ELP.                                 // VND ends before ELP.                       //
+    //------------------------------------------------------//
 
-    if (player.vendor.endsWith(";"))
+    if (embeddedELP != nullptr &&
+        (vendorEnd == nullptr ||
+         embeddedELP < vendorEnd))
     {
-        player.vendor.remove(
-            player.vendor.length() - 1);
+        vendorEnd =
+            embeddedELP;
     }
 
+    //------------------------------------------------------//-----------------------------------------------//
+    // Zapisz tylko właściwą nazwę dostawcy/usługi.             // Store only the actual provider/service name.//
+    //------------------------------------------------------//
+
+    if (vendorEnd != nullptr)
+    {
+        player.vendor =
+            String(vendorStart).substring(
+                0,
+                vendorEnd - vendorStart);
+    }
+    else
+    {
+        player.vendor =
+            String(vendorStart);
+    }
 
     //------------------------------------------------------//-----------------------------------------------//
-    // Poinformuj wyświetlacz o zmianie informacji VND.        // Notify the display about the VND information change. //
-    //------------------------------------------------------//-----------------------------------------------//
+    // Jeżeli VND zawiera sklejony ELP, przekaż ELP             // If VND contains a concatenated ELP, pass    //
+    // ponownie do parsera.                                     // it back to the parser.                     //
+    //------------------------------------------------------//
 
-    return ChangeFlags::Vendor;
+    ChangeFlags embeddedChanges =
+        ChangeFlags::None;
+
+    if (embeddedELP != nullptr)
+    {
+        embeddedChanges =
+            processMessage(
+                embeddedELP,
+                player);
+    }
+
+    //------------------------------------------------------//-----------------------------------------------//
+    // Poinformuj wyświetlacz o zmianie VND.                    // Notify the display about the VND change.   //
+    //------------------------------------------------------//
+
+    return
+        embeddedChanges |
+        ChangeFlags::Vendor;
 }
 
 //======================================================//-----------------------------------------------//
