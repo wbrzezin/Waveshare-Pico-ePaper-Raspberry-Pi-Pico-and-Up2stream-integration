@@ -140,16 +140,7 @@ void loadTestData(PlayerState& state)
 
 void setup()
 {
-    //----------------------------------------------------------//-----------------------------------------------//
-    // Uruchomienie portu szeregowego.                         // Start the serial port.                       //
-    // Wykorzystywany podczas uruchamiania oraz debugowania.   // Used during startup and debugging.           //
-    //----------------------------------------------------------//-----------------------------------------------//
-
-    while (!Serial)
-        delay(10);
-
-
-
+    
     //----------------------------------------------------------//-----------------------------------------------//
     // Inicjalizacja wyświetlacza.                             // Initialize the display.                     //
     //----------------------------------------------------------//-----------------------------------------------//

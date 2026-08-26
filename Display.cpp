@@ -22,7 +22,15 @@
 #include "PolishTime.h"
 #include "hardware/rtc.h"
 
+//--------------------------------------------------------------
+// Zewnętrzna flaga synchronizacji RTC.                      // External RTC synchronization flag.
+//                                                          //
+// Flaga jest zdefiniowana w głównym pliku .ino.             // The flag is defined in the main .ino file.
+// Display.cpp korzysta z niej wyłącznie do określenia,     // Display.cpp uses it only to determine whether
+// czy RTC posiada już poprawny czas.                       // the RTC already contains a valid time.
+//--------------------------------------------------------------
 
+extern bool rtcSynchronized;
 
 //==============================================================
 // Definicje współrzędnych elementów interfejsu             // Definitions of interface element coordinates  //
@@ -231,6 +239,14 @@ void Display::setRTC(
     //----------------------------------------------------------
 
     rtc_set_datetime(&dateTime);
+
+    //----------------------------------------------------------
+    // Oznaczenie RTC jako zsynchronizowanego.                  // Mark the RTC as synchronized.                  //
+    // Od tego momentu zegar może być wyświetlany jako           // From this moment, the clock can be displayed
+    // rzeczywista godzina zamiast "--:--".                     // as the actual time instead of "--:--".       //
+    //----------------------------------------------------------
+
+    rtcSynchronized = true;
 
 
     //----------------------------------------------------------
@@ -1343,14 +1359,40 @@ void Display::drawIdleScreen()
 
 epd.setFont(&FONT_CLOCK);
 
+//----------------------------------------------------------
+// Przygotowanie tekstu zegara.                            // Prepare the clock text.                       //
+//                                                          //                                               //
+// Przed pierwszą synchronizacją z Up2Stream               // Before the first synchronization with Up2Stream
+// nie wyświetlamy nieprawidłowych wartości początkowych   // do not display invalid initial RTC values.    //
+// RTC, lecz komunikat "--:--".                             // Instead, display "--:--".                    //
+//----------------------------------------------------------
+
 char clockBuffer[6];
 
-snprintf(
-    clockBuffer,
-    sizeof(clockBuffer),
-    "%02d:%02d",
-    now.hour,
-    now.min);
+if (rtcSynchronized)
+{
+    //------------------------------------------------------
+    // RTC został zsynchronizowany z Up2Stream.             // The RTC has been synchronized with Up2Stream. //
+    //------------------------------------------------------
+
+    snprintf(
+        clockBuffer,
+        sizeof(clockBuffer),
+        "%02d:%02d",
+        now.hour,
+        now.min);
+}
+else
+{
+    //------------------------------------------------------
+    // Oczekiwanie na pierwszą poprawną synchronizację.      // Waiting for the first valid synchronization.  //
+    //------------------------------------------------------
+
+    snprintf(
+        clockBuffer,
+        sizeof(clockBuffer),
+        "--:--");
+}
 
 String clockText = clockBuffer;
 
