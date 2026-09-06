@@ -621,14 +621,52 @@ if (strncmp(message, "SRC:", 4) == 0)
     // poprzednim źródłem.                                     // previous source must not be retained.       //
     //------------------------------------------------------//-----------------------------------------------//
 
-    player.vendor = "";
+       //------------------------------------------------------//-----------------------------------------------//
+    // Wyczyść dane poprzedniego utworu.                       // Clear data belonging to the previous track. //
+    //                                                         //                                             //
+    // Po zmianie źródła Up2Stream może nie wysłać              // After changing the source, Up2Stream may not //
+    // komunikatów ART/TIT/ELP dla nowego źródła.              // send ART/TIT/ELP messages for the new source. //
+    // Bez czyszczenia stare dane pozostałyby na ekranie.      // Without clearing, old data would remain on screen. //
+    //------------------------------------------------------//-----------------------------------------------//
+
+    player.artist = "";
+    player.title = "";
+
+    player.currentTime = "--:--";
+    player.totalTime = "--:--";
+
+    player.elapsedMs = 0;
+    player.totalMs = 0;
+    player.progress = 0;
+
+    //------------------------------------------------------//-----------------------------------------------//
+    // Nowe źródło rozpoczyna nowy kontekst oczekiwania        // The new source starts a new ELP waiting context //
+    // na dane o czasie odtwarzania.                           // for playback timing data.                    //
+    //------------------------------------------------------//-----------------------------------------------//
+
+    waitingForTrackELP = false;
+
+ //------------------------------------------------------//-----------------------------------------------//
+    // Pobierz aktualny czas z Up2Stream.                     // Request the current time from Up2Stream.    //
+    //                                                         //                                             //
+    // Po każdej zmianie źródła prosimy o aktualny czas.       // After every source change, request the current //
+    //                                                         // time.                                       //
+    //------------------------------------------------------//-----------------------------------------------//
+
+    query("TME;");
 
 
     //------------------------------------------------------//-----------------------------------------------//
-    // Poinformuj wyświetlacz o zmianie źródła.                // Notify the display about the source change. //
+    // Poinformuj wyświetlacz o zmianie źródła oraz             // Notify the display about the source change and //
+    // wyczyszczeniu danych utworu.                            // the cleared track information.               //
     //------------------------------------------------------//-----------------------------------------------//
 
-    return ChangeFlags::Source;
+    return ChangeFlags::Source |
+           ChangeFlags::Artist |
+           ChangeFlags::Title |
+           ChangeFlags::CurrentTime |
+           ChangeFlags::TotalTime |
+           ChangeFlags::Progress;
 }
 
 
