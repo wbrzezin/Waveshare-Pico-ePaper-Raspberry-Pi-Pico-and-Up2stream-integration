@@ -25,9 +25,12 @@ their authors.
 
 Relevant dependencies include:
 
-- Arduino-Pico by Earle F. Philhower, III
-- GxEPD2
-- Adafruit GFX Library
+| Biblioteka   | Licencja |
+| ------------ | -------- |
+| Arduino-Pico | LGPL-2.1 |
+| GxEPD2       | GPL-3.0  |
+| Adafruit GFX | BSD      |
+
 
 The project does not relicense these third-party libraries. Users should
 refer to the license files and official repositories distributed with
