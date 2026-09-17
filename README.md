@@ -1,28 +1,32 @@
-# UP2Stream Display
+# Waveshare Pico e-Paper Display for Arylic UP2Stream
 
-> **Bilingual documentation: English / Polski**
+[![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi%20Pico%20%2F%20RP2040-blue)](https://www.raspberrypi.com/products/raspberry-pi-pico/)
+[![Display](https://img.shields.io/badge/display-Waveshare%202.13%22%20e--Paper-lightgrey)](https://www.waveshare.com/2.13inch-e-paper.htm)
+[![Interface](https://img.shields.io/badge/interface-UART%20115200-orange)](#up2stream-uart-protocol)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 
-A Raspberry Pi Pico based e-paper display for the **Arylic UP2Stream** audio platform.
+**English / Polski**
 
-The project connects a **Raspberry Pi Pico (RP2040)** to an **Arylic UP2Stream Pro** module over UART and displays playback and device information on a **Waveshare 2.13-inch black-and-white e-paper display**.
+A Raspberry Pi Pico (RP2040) based e-paper display for the **Arylic UP2Stream** audio platform.
 
-The firmware is designed as a modular embedded application with separate components for UART communication, UP2Stream protocol parsing, player-state management, display rendering, text scrolling, UTF-8 handling and time/RTC management.
+The project connects a **Raspberry Pi Pico** to an **Arylic UP2Stream Pro** module over UART and displays playback and device information on a **Waveshare 2.13-inch black-and-white e-paper display**.
+
+The firmware is structured into separate components for UART communication, UP2Stream protocol parsing, player-state management, display rendering, text scrolling, UTF-8 handling and time/RTC management.
 
 ---
 
 ## Features
 
-- Communication with UP2Stream over UART at **115200 8N1**
+- UART communication with UP2Stream at **115200 8N1**
 - Asynchronous UP2Stream message parsing
-- Player/source state handling
-- Playback provider detection (`VND`)
-- Playback state detection
+- Playback source and state detection
+- Content provider detection (`VND`)
 - Volume and mute status
 - Track title, artist and album information
 - Elapsed and total playback time
 - Playback progress indicator
 - Raspberry Pi Pico hardware RTC synchronization
-- Local Polish date/time handling, including DST correction
+- Polish local date/time handling, including daylight-saving-time correction
 - Player screen
 - Idle clock screen
 - Automatic player/clock screen switching
@@ -32,13 +36,15 @@ The firmware is designed as a modular embedded application with separate compone
 - Scrolling of long text
 - Polish UTF-8 character support
 - Custom playback/status glyphs
-- Optional test data mode for UI development without UP2Stream
+- Optional test-data mode for UI development without an active UP2Stream connection
+
+---
 
 ## Project status
 
 The project is in the **working and verification stage**.
 
-The implementation has been tested with a physical Arylic UP2Stream Pro and a UART analyzer. The repository also contains detailed documentation of the observed UP2Stream UART protocol.
+The implementation has been tested with a physical **Arylic UP2Stream Pro** and a UART analyzer. The repository also contains detailed documentation of the observed UP2Stream UART protocol.
 
 > **Important:** The UART protocol documentation in this repository combines published protocol information with observations from a physical device. It should not be treated as a complete or authoritative specification of every UP2Stream firmware version.
 
@@ -97,14 +103,14 @@ Required libraries:
 
 The project also uses standard Arduino/RP2040 functionality such as SPI, UART and the RP2040 hardware RTC.
 
-The repository contains the generated font header files used by the display interface, so the corresponding font files do not need to be installed separately.
+The repository contains generated font header files used by the display interface.
 
 ---
 
 # Installation
 
 1. Install the Arduino IDE.
-2. Install the **Raspberry Pi Pico / RP2040 Arduino core by Earle Philhower**.
+2. Install the **Raspberry Pi Pico / RP2040 Arduino core by Earle F. Philhower, III**.
 3. Select the appropriate Raspberry Pi Pico board.
 4. Install:
    - `GxEPD2`
@@ -144,7 +150,7 @@ constexpr uint8_t UP2STREAM_UART_RX_PIN = 5;
 #define UP2STREAM_SERIAL Serial2
 ```
 
-UART speed:
+UART configuration:
 
 ```text
 115200 baud
@@ -309,7 +315,7 @@ The UP2Stream's own reported UTC offset should not necessarily be treated as a c
 
 E-paper displays are fundamentally different from conventional TFT/OLED displays. The project therefore avoids unnecessary full-screen refreshes and uses state/change detection to determine when the display needs to be updated.
 
-The firmware also handles:
+The firmware handles:
 
 - player screen refresh,
 - clock screen refresh,
@@ -348,8 +354,13 @@ GxEPD2_213_B74
 ├── Theme.h
 ├── UP2STREAM_UART.md
 ├── UP2STREAM_UART.pl.md
+├── THIRD-PARTY-LICENSES.md
+├── LICENSE
 ├── fonts/
-└── LICENSE
+│   ├── OFL-1.1.txt
+│   ├── README.md
+│   └── NotoSans/
+└── .gitignore
 ```
 
 ---
@@ -370,7 +381,7 @@ GxEPD2_213_B74
 
 The project is intentionally structured so that hardware configuration, communication, state handling and display rendering can be modified independently.
 
-Areas suitable for further development include:
+Possible future development areas include:
 
 - support for additional UP2Stream models,
 - additional display variants,
@@ -384,27 +395,37 @@ Areas suitable for further development include:
 
 ---
 
-# Protocol documentation
+# Third-party components and licenses
 
-For developers working with the UP2Stream UART interface, the repository includes detailed protocol notes based on both documentation and direct observation:
+This project uses third-party software and font resources.
 
-**English**
+The project's source code is distributed under **GNU General Public License v3.0 (GPL-3.0)** unless otherwise stated.
 
-`UP2STREAM_UART.md`
+Noto Sans fonts included in the repository are distributed under the **SIL Open Font License 1.1 (OFL-1.1)**.
 
-**Polski**
+For details about third-party components and their licenses, see:
 
-`UP2STREAM_UART.pl.md`
+```text
+THIRD-PARTY-LICENSES.md
+```
 
-These documents are particularly useful when modifying `Up2StreamClient`.
+The complete Noto Sans OFL 1.1 license text is included in:
+
+```text
+fonts/OFL-1.1.txt
+```
+
+The project does not relicense third-party libraries or font software.
 
 ---
 
 # License
 
-This project is distributed under the **GNU General Public License v3.0 (GPL-3.0)**.
+The original source code of this project is distributed under the **GNU General Public License v3.0**.
 
 See [`LICENSE`](LICENSE) for the complete license text.
+
+Third-party components remain subject to their respective licenses. See [`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md).
 
 ---
 
@@ -420,7 +441,7 @@ GitHub repository:
 
 # Polski
 
-## UP2Stream Display
+## Wyświetlacz e-paper Waveshare dla Arylic UP2Stream
 
 Projekt jest opartym na **Raspberry Pi Pico (RP2040)** wyświetlaczem e-paper przeznaczonym do współpracy z platformą audio **Arylic UP2Stream**.
 
@@ -434,9 +455,8 @@ Firmware został podzielony na niezależne komponenty odpowiedzialne za komunika
 
 - komunikacja z UP2Stream przez UART **115200 8N1**,
 - asynchroniczna analiza komunikatów UP2Stream,
-- obsługa stanu odtwarzacza i źródła,
+- rozpoznawanie źródła i stanu odtwarzania,
 - rozpoznawanie dostawcy treści (`VND`),
-- obsługa stanu odtwarzania,
 - obsługa głośności i wyciszenia,
 - wyświetlanie tytułu, wykonawcy i albumu,
 - wyświetlanie czasu odtwarzania i całkowitego czasu utworu,
@@ -454,11 +474,13 @@ Firmware został podzielony na niezależne komponenty odpowiedzialne za komunika
 - własne symbole i ikony stanu,
 - opcjonalny tryb danych testowych.
 
+---
+
 ## Status projektu
 
-Projekt znajduje się obecnie na etapie **działającej implementacji i weryfikacji**.
+Projekt znajduje się na etapie **działającej implementacji i weryfikacji**.
 
-Firmware był testowany z fizycznym modułem Arylic UP2Stream Pro oraz analizatorem UART. Repozytorium zawiera również szczegółową dokumentację zaobserwowanego protokołu UART UP2Stream.
+Firmware był testowany z fizycznym modułem **Arylic UP2Stream Pro** oraz analizatorem UART. Repozytorium zawiera również szczegółową dokumentację zaobserwowanego protokołu UART UP2Stream.
 
 > **Ważne:** dokumentacja protokołu UART znajdująca się w tym repozytorium łączy informacje z opublikowanej dokumentacji z obserwacjami wykonanymi na fizycznym urządzeniu. Nie należy traktować jej jako kompletnej i autorytatywnej specyfikacji wszystkich wersji firmware UP2Stream.
 
@@ -521,19 +543,19 @@ Wymagane biblioteki:
 
 Projekt wykorzystuje również standardowe funkcje Arduino/RP2040, między innymi SPI, UART oraz sprzętowy RTC RP2040.
 
-W repozytorium znajdują się wygenerowane nagłówki czcionek wykorzystywanych przez interfejs, dlatego nie ma potrzeby instalowania tych czcionek oddzielnie.
+W repozytorium znajdują się wygenerowane nagłówki czcionek wykorzystywanych przez interfejs.
 
 ---
 
 # Instalacja
 
 1. Zainstaluj Arduino IDE.
-2. Zainstaluj **Raspberry Pi Pico / RP2040 Arduino core firmy Earle Philhower**.
+2. Zainstaluj **Raspberry Pi Pico / RP2040 Arduino core firmy Earle F. Philhower, III**.
 3. Wybierz odpowiednią płytkę Raspberry Pi Pico.
 4. Zainstaluj biblioteki:
    - `GxEPD2`,
    - `Adafruit GFX Library`.
-5. Otwórz plik:
+5. Otwórz:
 
 ```text
 Waveshare-Pico-ePaper-Raspberry-Pi-Pico-and-Up2stream-integr.ino
@@ -547,6 +569,38 @@ HardwareConfig.h
 
 7. Podłącz sprzęt.
 8. Skompiluj i wgraj firmware do Raspberry Pi Pico.
+
+---
+
+# Konfiguracja
+
+Konfiguracja sprzętowa znajduje się w `HardwareConfig.h`.
+
+Aktualna konfiguracja:
+
+```cpp
+constexpr uint8_t DISPLAY_CS_PIN   = 9;
+constexpr uint8_t DISPLAY_DC_PIN   = 8;
+constexpr uint8_t DISPLAY_RST_PIN  = 12;
+constexpr uint8_t DISPLAY_BUSY_PIN = 13;
+
+constexpr uint8_t UP2STREAM_UART_TX_PIN = 4;
+constexpr uint8_t UP2STREAM_UART_RX_PIN = 5;
+
+#define UP2STREAM_SERIAL Serial2
+```
+
+Konfiguracja UART:
+
+```text
+115200 baud
+8 bitów danych
+brak parzystości
+1 bit stopu
+brak kontroli przepływu
+```
+
+Bufor FIFO odbiornika UART został zwiększony do 128 bajtów, aby zmniejszyć ryzyko utraty znaków podczas odbierania dłuższych komunikatów, szczególnie w czasie aktualizacji wyświetlacza e-paper.
 
 ---
 
@@ -730,27 +784,37 @@ Możliwe kierunki dalszego rozwoju:
 
 ---
 
-# Dokumentacja protokołu
+# Komponenty zewnętrzne i licencje
 
-W repozytorium znajdują się szczegółowe notatki dotyczące interfejsu UART UP2Stream, przygotowane na podstawie dokumentacji oraz bezpośrednich pomiarów:
+Projekt wykorzystuje zewnętrzne biblioteki programistyczne oraz zasoby czcionek.
 
-**English**
+Kod źródłowy projektu jest rozpowszechniany na licencji **GNU General Public License v3.0 (GPL-3.0)**, chyba że w konkretnym pliku lub katalogu zaznaczono inaczej.
 
-`UP2STREAM_UART.md`
+Czcionki Noto Sans znajdujące się w repozytorium są rozpowszechniane na licencji **SIL Open Font License 1.1 (OFL-1.1)**.
 
-**Polski**
+Szczegółowe informacje dotyczące komponentów zewnętrznych i ich licencji znajdują się w:
 
-`UP2STREAM_UART.pl.md`
+```text
+THIRD-PARTY-LICENSES.md
+```
 
-Dokumenty te są szczególnie przydatne podczas modyfikowania `Up2StreamClient`.
+Pełny tekst licencji OFL 1.1 znajduje się w:
+
+```text
+fonts/OFL-1.1.txt
+```
+
+Projekt nie zmienia ani nie nadaje własnych licencji zewnętrznym bibliotekom i fontom.
 
 ---
 
 # Licencja
 
-Projekt jest rozpowszechniany na licencji **GNU General Public License v3.0 (GPL-3.0)**.
+Własny kod źródłowy projektu jest rozpowszechniany na licencji **GNU General Public License v3.0**.
 
 Pełny tekst licencji znajduje się w pliku [`LICENSE`](LICENSE).
+
+Komponenty zewnętrzne pozostają objęte ich własnymi licencjami. Szczegóły znajdują się w [`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md).
 
 ---
 
